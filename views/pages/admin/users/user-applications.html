@@ -24,7 +24,9 @@
                 <label for="menu-toggle" class="header__menu-icon">
                     <span></span>
                 </label>
-                <img class="header__avatar" src="{{if .Avatar}}{{.Avatar}}{{else}}../../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
+                <img class="header__avatar"
+                    src="{{if .Avatar}}{{.Avatar}}{{else}}../../pictures/Generic avatar.png{{end}}"
+                    alt="Profile Avatar">
             </div>
         </header>
 
@@ -67,12 +69,11 @@
                                     <img src={{.avatar}}>
                                     {{.surname}} {{.name}} {{.lastname}}
                                     <div class="header__role">
-                                        {{switch .role}}
-                                        {{case "admin"}}
+                                        {{if eq .role "admin"}}
                                         <h2 class="header__role-text header__role-text--admin">Администратор</h2>
-                                        {{case "student"}}
+                                        {{else if eq .role "student"}}
                                         <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
-                                        {{case "examiner"}}
+                                        {{else if eq .role "examiner"}}
                                         <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
                                         {{end}}
                                     </div>
