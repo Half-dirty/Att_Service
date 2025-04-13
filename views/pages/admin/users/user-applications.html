@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/admin/global.css">
+    <link rel="stylesheet" href="../../../style/admin/user_list.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="header__container">
+                <a class="header__logo" href="/">
+                    <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
+                    <div class="header__logo-text__container">
+                        <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
+                    </div>
+                </a>
+                <input type="checkbox" id="menu-toggle" class="header__menu-toggle">
+                <label for="menu-toggle" class="header__menu-icon">
+                    <span></span>
+                </label>
+                <img class="header__avatar"
+                    src="{{if .Avatar}}{{.Avatar}}{{else}}../../pictures/Generic avatar.png{{end}}"
+                    alt="Profile Avatar">
+            </div>
+        </header>
+
+        <main class="main">
+            <nav class="menu">
+                <ul class="menu__list">
+                    <li class="menu__item">
+                        <a href="/admin/user/list" class="menu__button">Все пользователи</a>
+                    </li>
+                    <li class="menu__item menu__item--active">
+                        <a href="/admin/user/application" type="button" class="menu__button">Заявления</a>
+                    </li>
+                    <li class="menu__item">
+                        <a href="#" class="menu__button">Настройки</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <section class="profile">
+                <div class="profile__header">
+                    <div class="profile__search">
+                        <input class="profile__search-input" id="search_application_input" type="text"
+                            placeholder="Поиск по ФИО">
+                        <button class="profile__search-button" id="search_application">Поиск</button>
+                    </div>
+                    <div class="profile__select">
+                        <select name="status" id="users_role_application" class="profile__selector">
+                            <option value="all">Все пользователи</option>
+                            <option value="students">Аттестуемые</option>
+                            <option value="examiners">Экзаменаторы</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="profile__users">
+                    <div class="profile__user_list">
+                        {{range .Lists}}
+                        <div class="profile__user" id={{.ID}}>
+                            <div class="profile__user-name" name="{{.Surname}}_{{.Name}}_{{.Lastname}}">
+                                <h2>
+                                    <img src={{.Avatar}}>
+                                    {{.Surname}} {{.Name}} {{.Lastname}}
+                                    <div class="header__role">
+                                        {{if eq .Role "admin"}}
+                                        <h2 class="header__role-text header__role-text--admin">Администратор</h2>
+                                        {{else if eq .Role "student"}}
+                                        <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                                        {{else if eq .Role "examiner"}}
+                                        <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                                        {{end}}
+                                    </div>
+                                </h2>
+                            </div>
+                            <div class="profile__user-selector">
+                                <ul class="profile__user-menu">
+                                    <li><a href="/admin/show/student/{{.ID}}" class="profile__user-link">Посмотреть
+                                            аккаунт</a></li>
+                                    <li><a href="/admin/delete/student/{{.ID}}" class="profile__user-link">Удалить
+                                            аккаунт</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        {{end}}
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer"></footer>
+    </div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="../../../scripts/admin_script.js"></script>
+
+</html>

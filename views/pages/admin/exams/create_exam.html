@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/admin/global.css">
+    <link rel="stylesheet" href="../../../style/admin/exams.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="header__container">
+                <a class="header__logo" href="./index.html">
+                    <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
+                    <div class="header__logo-text__container">
+                        <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
+                    </div>
+                </a>
+                <input type="checkbox" id="menu-toggle" class="header__menu-toggle">
+                <label for="menu-toggle" class="header__menu-icon">
+                    <span></span>
+                </label>
+                <img class="header__avatar" src="../../../pictures/Generic avatar.png" alt="Profile Avatar">
+            </div>
+        </header>
+
+        <main class="main">
+            <nav class="menu">
+                <ul class="menu__list">
+                    <li class="menu__item">
+                        <a href="./exam-list.html" class="menu__button">Прошедшие экзамены</a>
+                    </li>
+                    <li class="menu__item menu__item--active">
+                        <a href="./exam-planning.html" type="button" class="menu__button">Запланированные экзамены</a>
+                    </li>
+                    <li class="menu__item">
+                        <a href="./exam-scheduled.html" class="menu__button">Назначенные экзамены</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <section class="profile">
+                <div class="profile__params">
+                    <div class="profile__params-item">
+                        <div class="profile__item-part">
+                            <label class="profile__params-label" for="exam_date">Дата проведения экзамена:</label>
+                            <input class="profile__params-input" type="date" name="exam_date" id="exam_date"
+                                placeholder="__.__.____">
+                        </div>
+                        <div class="profile__item-part">
+                            <label class="profile__params-label" for="exam_code">Предварительный код экзамена:</label>
+                            <input class="profile__params-input" type="number" readonly name="exam_code" id="exam_code"
+                                placeholder="__-__-__">
+                        </div>
+                    </div>
+                    <div class="profile__params-item">
+                        <div class="profile__item-part">
+                            <label class="profile__params-label" for="commission_start">Начало действия
+                                комиссии:</label>
+                            <input class="profile__params-input" type="date" name="commission_start"
+                                id="commission_start" placeholder="__.__.____">
+                        </div>
+                        <div class="profile__item-part">
+                            <label class="profile__params-label" for="commission_end">Конец действия комиссии:</label>
+                            <input class="profile__params-input" type="date" name="commission_end" id="commission_end"
+                                placeholder="__.__.____">
+                        </div>
+                    </div>
+                    <div class="profile__people">
+                        <div class="profile__people-examiner">
+                            <div class="profile__people-header">
+                                <label for="examiner-input">Выберите экзаменаторов:</label>
+                                <button class="profile__people-select_all" id="select-all_examiner">Выбрать
+                                    всех</button>
+                            </div>
+                            <div class="profile__examiner-list">
+                                <div class="profile__examiner-item" data-id="1">
+                                    <div class="profile__user-name">Иванов Иван Иванович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="2">
+                                    <div class="profile__user-name">Петров Пётр Петрович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="3">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="4">
+                                    <div class="profile__user-name">Иванов Иван Иванович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="5">
+                                    <div class="profile__user-name">Петров Пётр Петрович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__examiner-item" data-id="6">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile__people-student">
+                            <div class="profile__people-header">
+                                <label for="student-input">Выберите экзаменуемых:</label>
+                                <button class="profile__people-select_all" id="select-all_student">Выбрать всех</button>
+                            </div>
+                            <div class="profile__student-list">
+                                <div class="profile__student-item" data-id="1">
+                                    <div class="profile__user-name">Иванов Иван Иванович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__student-item" data-id="2">
+                                    <div class="profile__user-name">Петров Пётр Петрович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                                <div class="profile__student-item" data-id="3">
+                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
+                                    <div class="profile__menu-icon"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__save">
+                        <button class="profile__save-button" id="create_exam">Запланировать</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer"></footer>
+    </div>
+    <div id="custom-alert" class="custom-alert hidden"></div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
+<script src="../../../scripts/admin_script.js"></script>
+
+</html>

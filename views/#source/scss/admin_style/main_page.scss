@@ -1,0 +1,43 @@
+.menu {
+    max-width: 1440px;
+    width: 100%;
+    height: 100%;
+
+    &__list {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__selector {
+        display: flex;
+        flex-direction: column;
+        margin: 10px;
+        padding: 10px;
+        background-color: #dadada;
+        border-radius: 5px;
+
+        &-button {
+            text-decoration: none;
+            color: black;
+            font-size: 20px;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            img {
+                width: 120px;
+                height: 120px;
+            }
+        }
+    }
+
+    &__selector:hover {
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    }
+}

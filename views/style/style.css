@@ -1,0 +1,350 @@
+/*----------------ОБНУЛЕНИЕ-------------------------*/
+*,
+*::before,
+*::after {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+}
+
+ul,
+ol,
+li {
+    list-style: none;
+}
+
+img {
+    vertical-align: top;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: inherit;
+    font-size: inherit;
+}
+
+html,
+body {
+    line-height: 1;
+    font-size: 14px;
+    color: #252b42;
+    font-weight: 500;
+    font-family: Arial, sans-serif;
+    transition: background-color 0.3s, color 0.3s;
+    background-color: #F5F5F5;
+    height: 100%;
+}
+
+.wrapper {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+._container {
+    max-width: 1475px;
+    margin: 0 auto;
+    padding: 0 15px;
+    /* box-sizing: content-box; */
+}
+
+/* --HEADER------------------------------------------------------------------------------- */
+.header {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    top: 0;
+    max-height: 140px;
+    height: 100%;
+    align-items: center;
+    background-color: white;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 0 15px;
+    z-index: 2;
+}
+
+.header__container {
+    height: 100%;
+    width: 100%;
+    max-width: 1440px;
+    margin: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header__logo {
+    display: flex;
+    align-items: center;
+    color: inherit;
+    height: 100%;
+    /* width: 100%; */
+    /* max-width: 1200px; */
+    /* margin: 0 auto; */
+    font-size: 23px;
+    text-decoration: none;
+}
+
+.header__logo-img {
+    margin: 10px;
+    height: 70%;
+    width: auto;
+}
+
+.header__logo-text__container{
+    margin: 0 15px;
+}
+
+.header__logo-text {
+    display: flex;
+    flex-wrap: wrap;
+    width: 50%;
+}
+
+.header__avatar {
+    max-height: 50%;
+    border-radius: 50%;
+    margin: 10px 0 10px 0;
+}
+
+/* --MAIN------------------------------------------------------------------------------- */
+
+.main {
+    position: relative;
+    display: flex;
+    flex: 1;
+    margin-top: 140px;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.auth_form {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 5px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    text-align: center;
+
+    /* min-width: 15%;
+    height: 50%;
+    margin: auto; */
+}
+
+.auth_form h2 {
+    font-size: 40px;
+}
+
+.auth_form h3 {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    width: 90%;
+    text-align: justify;
+}
+
+/* --FORM------------------------------------------------------------------------------- */
+
+.form__input {
+    position: relative;
+    width: 100%;
+}
+
+.form__input label {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: gray;
+    transition: 0.3s ease-in-out;
+    pointer-events: none;
+}
+
+.form__input_text {
+    width: 100%;
+    border: 2px solid #DADADA;
+    border-radius: 5px;
+    padding: 12px 15px;
+    font-size: 16px;
+    outline: none;
+    /* background: #DADADA; */
+}
+
+.form__input_text:focus+label,
+.form__input_text:not(:placeholder-shown)+label {
+    transform: translateY(-35px) scale(0.8);
+    background-color: #DADADA;
+    padding: 5px;
+    border-radius: 5px;
+    color: rgba(0, 0, 0, 0.8);
+}
+
+.form__agree_button {
+    width: 100%;
+    border: 2px solid #2F68D5;
+    border-radius: 5px;
+    padding: 12px;
+    font-size: 20px;
+    background-color: #2F68D5;
+    color: white;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.form__agree_button:hover {
+    /* background-color: #2F68D5; */
+    box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
+}
+
+.form__link_container {
+    width: 100%;
+    text-align: center;
+    opacity: 0.75;
+}
+
+.form__link_container a {
+    display: inline-block;
+    width: 100%;
+    text-decoration: none;
+    cursor: pointer;
+    color: rgba(15, 36, 77, 0.8);
+    font-size: 18px;
+    padding-top: 5px;
+}
+
+.form__link_container a:hover {
+    text-shadow: 2px 4px 5px rgba(15, 36, 77, 0.6);
+}
+
+/* --кастомные уведомления------------------------------------------------------------------------------- */
+.custom-alert {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #4CAF50;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+
+.custom-alert.error {
+    background-color: #f44336;
+}
+
+.custom-alert.show {
+    opacity: 1;
+}
+
+.hidden {
+    display: none;
+}
+
+/* --- АДАПТИВНОСТЬ --- */
+
+/* Для планшетов (до 1024px) */
+@media screen and (max-width: 1024px) {
+    .header {
+        height: 100px;
+    }
+
+    .header__container {
+        width: 80%;
+    }
+
+    .header__logo_name {
+        font-size: 18px;
+    }
+
+    .auth_form {
+        max-width: 350px;
+    }
+
+    .auth_form h2 {
+        font-size: 35px;
+    }
+
+    .form__agree_button {
+        font-size: 18px;
+    }
+}
+
+/* Для телефонов (до 768px) */
+@media screen and (max-width: 768px) {
+    .header {
+        height: 80px;
+    }
+
+    .header__container {
+        width: 80%;
+    }
+
+    .auth_form {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    .auth_form h2 {
+        font-size: 28px;
+    }
+
+    .form__agree_button {
+        font-size: 16px;
+        padding: 10px;
+    }
+}
+
+/* Для маленьких экранов (до 480px) */
+@media screen and (max-width: 480px) {
+    .header {
+        height: 60px;
+        padding: 0 10px;
+    }
+
+    .header__container {
+        width: 100%;
+    }
+
+    .header__logo_name {
+        display: none;
+    }
+
+    .auth_form {
+        width: 95%;
+        max-width: 280px;
+        padding: 15px;
+    }
+
+    .auth_form h2 {
+        font-size: 24px;
+    }
+
+    .form__agree_button {
+        font-size: 14px;
+        padding: 8px;
+    }
+}

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/admin/exam_procedure.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <main class="main">
+            <section class="exam__window">
+                <div class="exam__header">
+                    <h2>
+                        Оценочный лист
+                    </h2>
+                </div>
+                <div class="exam__body">
+                    <div class="exam__protocol">
+                        <div class="exam__protocol-column">
+                            <label for="protocol_num">
+                                К Протоколу №
+                            </label>
+                            <input type="text" placeholder="__-__-__" name="protocol_num" id="protocol_num"
+                                inputmode="text" readonly>
+                        </div>
+                        <div class="exam__protocol-column">
+                            <label for="protocol_date">
+                                / от
+                            </label>
+                            <input type="date" name="" id="protocol_date" readonly>
+                        </div>
+                    </div>
+                    <div class="exam__person">
+                        <div class="exam__person-info">
+                            <div class="exam__person-placeholder">
+                                <label>
+                                    Аттестуемый:
+                                </label>
+                                <input type="text" id="person_fio" readonly>
+                            </div>
+                            <div class="exam__person-placeholder">
+                                <label>
+                                    Запрашиваемая квалификация:
+                                </label>
+                                <input type="text" id="person_quality" readonly>
+                            </div>
+                            <div class="exam__person-placeholder">
+                                <label>
+                                    Заявленная специализация:
+                                </label>
+                                <input type="text" id="person_special" readonly>
+                            </div>
+                        </div>
+                        <div class="exam__person-img">
+                            <img src="../../../pictures/Generic avatar.png" alt="">
+                        </div>
+                    </div>
+                    <div class="exam__question">
+                        <table class="exam__question-table">
+                            <thead>
+                                <tr>
+                                    <th>№ п/п</th>
+                                    <th>Показатель (критерий оценки)</th>
+                                    <th colspan="6">Баллы</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th>0</th>
+                                    <th>1</th>
+                                    <th>2</th>
+                                    <th>3</th>
+                                    <th>4</th>
+                                    <th>5</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">1</td>
+                                    <td class="exam__question-text">Задание 1 Ответ по билету</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q1" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q1" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q1" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q1" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q1" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q1" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">2</td>
+                                    <td class="exam__question-text">Обратный перевод (Последовательный письменный,
+                                        Жестовый → русский)</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q2" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q2" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q2" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q2" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q2" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q2" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">3</td>
+                                    <td class="exam__question-text">Прямой перевод (Синхронный, Русский → жестовый)</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q3" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q3" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q3" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q3" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q3" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q3" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">4</td>
+                                    <td class="exam__question-text">Прямой перевод (Последовательный, Русский →
+                                        жестовый)</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q4" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q4" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q4" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q4" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q4" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q4" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">5</td>
+                                    <td class="exam__question-text">Обратный перевод (Синхронный устный, Русский →
+                                        жестовый)</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q5" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q5" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q5" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q5" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q5" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q5" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">6</td>
+                                    <td class="exam__question-text">Четкость исполнения жестов</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q6" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q6" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q6" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q6" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q6" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q6" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">7</td>
+                                    <td class="exam__question-text">Скорость перевода</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q7" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q7" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q7" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q7" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q7" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q7" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">8</td>
+                                    <td class="exam__question-text">Мимика (Выразительность лица)</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q8" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q8" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q8" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q8" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q8" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q8" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">9</td>
+                                    <td class="exam__question-text">Артикуляция</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q9" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q9" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q9" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q9" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q9" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q9" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">10</td>
+                                    <td class="exam__question-text">Лексический запас жестов</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q10" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q10" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q10" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q10" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q10" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q10" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-marks">11</td>
+                                    <td class="exam__question-text">Внешний вид согласно дресс-коду</td>
+                                    <td class="exam__question-marks"><input type="radio" name="q11" value="0"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q11" value="1"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q11" value="2"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q11" value="3"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q11" value="4"></td>
+                                    <td class="exam__question-marks"><input type="radio" name="q11" value="5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-text" colspan="2">Итого по столбцу:</td>
+                                    <td class="exam__question-marks"><input type="text" name="point" readonly id="point0"></td>
+                                    <td class="exam__question-marks"><input type="text" name="point" readonly id="point1"></td>
+                                    <td class="exam__question-marks"><input type="text" name="point" readonly id="point2"></td>
+                                    <td class="exam__question-marks"><input type="text" name="point" readonly id="point3"></td>
+                                    <td class="exam__question-marks"><input type="text" name="point" readonly id="point4"></td>
+                                    <td class="exam__question-marks"><input type="text" name="point" readonly id="point5"></td>
+                                </tr>
+                                <tr class="exam__question-row">
+                                    <td class="exam__question-text" colspan="2">Всего:</td>
+                                    <td class="exam__question-marks exam__question-text" colspan="6">
+                                        <input type="text" readonly id="total">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="exam__recomendation">
+                        <h2>
+                            Рекомендации:
+                        </h2>
+                        <textarea class="exam__textarea exam__textarea-auto_expand" rows="1"
+                            oninput="adjustHeight(this)" name="recomendation" id="recomendation"></textarea>
+                    </div>
+                    <div class="exam__solution">
+                        <h1>Решение о присвоении квалификации:</h1>
+                        <div class="exam__solution-qualification">
+                            <h2>
+                                Присваиваемая квалификация:
+                            </h2>
+                            <select name="" id="">
+                                <option value="">03.01600.01 Переводчик русского жестового языка III категории (5
+                                    уровень квалификации)</option>
+                                <option value="">03.01600.02 Переводчик русского жестового языка — синхронист II
+                                    категории (6 уровень квалификации)</option>
+                            </select>
+                        </div>
+                        <div class="exam__solution-specialization">
+                            <h2>
+                                Допуск (Специализация):
+                            </h2>
+                            <select name="" id="">
+                                <option value="">медицинское сопровождение</option>
+                                <option value="">образование</option>
+                            </select>
+
+                            <div class="exam__buttons">
+                                <div class="exam__buttons-abstain">
+                                    <label for="exam__abstain"></label>
+                                    <input type="checkbox">
+                                    Воздержаться
+                                    </input>
+                                </div>
+                                <button class="exam__buttons-subscribe">
+                                    Подписать
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer"></footer>
+    </div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
+<script src="../../../scripts/exam.js"></script>
+
+</html>

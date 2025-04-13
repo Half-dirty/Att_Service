@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../style/style.css">
+    <link rel="stylesheet" href="../../style/student/global.css">
+    <link rel="stylesheet" href="../../style/student/main_page.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="header__container">
+                <a class="header__logo" href="./index.html">
+                    <img class="header__logo-img" src="../../pictures/logo.svg" alt="Logo" />
+                    <div class="header__logo-text__container">
+                        <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
+                    </div>
+                </a>
+                <input type="checkbox" id="menu-toggle" class="header__menu-toggle">
+                <label for="menu-toggle" class="header__menu-icon">
+                    <span></span>
+                </label>
+
+                <div class="header__profile">
+                    <div class="header__profile-info">
+                        <div class="header__status">
+                            <h2>Статус:</h2>
+                            <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>
+                        </div>
+                        <div class="header__role">
+                            <h2>Роль:</h2>
+                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                        </div>
+                    </div>
+                    <img class="header__profile-avatar" src="../../pictures/Generic avatar.png" alt="Profile Avatar">
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <nav class="menu">
+                <ul class="menu__list">
+                    <li class="menu__item menu__item--active">
+                        <a href="./main.html" class="menu__button">Личные данные</a>
+                    </li>
+                    <li class="menu__item">
+                        <a href="./documents.html" type="button" class="menu__button">Документы</a>
+                    </li>
+                    <li class="menu__item menu__item--disabled">
+                        <a href="./applications.html" class="menu__button popup__link" name="aplication_form">Мои
+                            заявки</a>
+                    </li>
+                    <li class="menu__item">
+                        <a href="#" class="menu__button">Настройки</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <section class="profile">
+                <div class="profile__body">
+                    <div class="profile__create">
+                        <h2 class="profile__create-text">Создать заявку на аттестацию</h2>
+                        <a href="#" class="profile__create-button popup__link" name="aplication_form">Создать</a>
+                    </div>
+                    <div class="profile__application-list">
+                        <div class="profile__application-item profile__application-item--active">
+                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
+                            <h2 class="profile__application-text">Подтверждено</h2>
+                        </div>
+                        <div class="profile__application-item">
+                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
+                            <h2 class="profile__application-text">Ожидает подтверждения</h2>
+                        </div>
+                    </div>
+                <div class="profile__save">
+                    <button type="button" class="profile__save-button" id="send__main_page">Сохранить</button>
+                </div>
+            </section>
+        </main>
+
+
+        <footer class="footer"></footer>
+    </div>
+    <div id="custom-alert" class="custom-alert hidden"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
+    <script src="../../scripts/student_script.js"></script>
+</body>
+
+</html>
