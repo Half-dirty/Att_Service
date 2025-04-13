@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../style/style.css">
     <link rel="stylesheet" href="../../style/student/global.css">
-    <link rel="stylesheet" href="../../style/student/main_page.css">
+    <link rel="stylesheet" href="../../style/student/applications.css">
     <title>Document</title>
 </head>
 
@@ -65,21 +65,27 @@
                 <div class="profile__body">
                     <div class="profile__create">
                         <h2 class="profile__create-text">Создать заявку на аттестацию</h2>
-                        <a href="#" class="profile__create-button popup__link" name="aplication_form">Создать</a>
+                        <a href="./create_application.html" class="profile__create-button">Создать</a>
                     </div>
                     <div class="profile__application-list">
                         <div class="profile__application-item profile__application-item--active">
                             <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <h2 class="profile__application-text">Подтверждено</h2>
+                            <h2 class="profile__application-text profile__application--aproved">Подтверждено</h2>
                         </div>
                         <div class="profile__application-item">
                             <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <h2 class="profile__application-text">Ожидает подтверждения</h2>
+                            <h2 class="profile__application-text profile__application--waiting">Ожидает подтверждения
+                            </h2>
+                        </div>
+                        <div class="profile__application-item">
+                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
+                            <div class="profile__application-solution">
+                                <h2 class="profile__application-text profile__application--decline">Отклонено</h2>
+                                <a href="#" class="profile__application-button popup__decline-form"
+                                    name="reason_decline">Причина</a>
+                            </div>
                         </div>
                     </div>
-                <div class="profile__save">
-                    <button type="button" class="profile__save-button" id="send__main_page">Сохранить</button>
-                </div>
             </section>
         </main>
 

@@ -24,9 +24,7 @@
                 <label for="menu-toggle" class="header__menu-icon">
                     <span></span>
                 </label>
-                <img class="header__avatar"
-                    src="{{if .Avatar}}{{.Avatar}}{{else}}../../pictures/Generic avatar.png{{end}}"
-                    alt="Profile Avatar">
+                <img class="header__avatar" src="{{if .Avatar}}{{.Avatar}}{{else}}../../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
             </div>
         </header>
 
@@ -63,17 +61,18 @@
                 <div class="profile__users">
                     <div class="profile__user_list">
                         {{range .Lists}}
-                        <div class="profile__user" id={{.ID}}>
-                            <div class="profile__user-name" name="{{.Surname}}_{{.Name}}_{{.Lastname}}">
+                        <div class="profile__user" id={{.id}}>
+                            <div class="profile__user-name" name=`{{.surname}}_{{.name}}_{{.lastname}}`>
                                 <h2>
-                                    <img src={{.Avatar}}>
-                                    {{.Surname}} {{.Name}} {{.Lastname}}
+                                    <img src={{.avatar}}>
+                                    {{.surname}} {{.name}} {{.lastname}}
                                     <div class="header__role">
-                                        {{if eq .Role "admin"}}
+                                        {{switch .role}}
+                                        {{case "admin"}}
                                         <h2 class="header__role-text header__role-text--admin">Администратор</h2>
-                                        {{else if eq .Role "student"}}
+                                        {{case "student"}}
                                         <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
-                                        {{else if eq .Role "examiner"}}
+                                        {{case "examiner"}}
                                         <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
                                         {{end}}
                                     </div>

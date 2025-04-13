@@ -140,13 +140,28 @@
 
                             <div class="profile__row">
                                 <div class="profile__scan">
-                                    <label class="profile__label" for="passport_all">Сканы паспорта:</label>
+                                    <label class="profile__label" for="scan_passport_turn">Разворот паспорта:</label>
                                     <div class="uploadContainer profile__scan--input">
-                                        <input type="file" name="passport_all" id="passport_all" accept="image/*" hidden
-                                            class="scan__input" multiple data-id="passport_all_preview">
-                                        <div id="passport_all_preview" class="image-preview">
-                                            {{range .passport_images}}
-                                            <img src="{{.}}" alt="Паспорт">
+                                        <input type="file" name="passport_spread" id="scan_passport_turn"
+                                            accept="image/*" hidden class="scan__input" multiple
+                                            data-id="passport_spread">
+                                        <div id="passport_spread" name="passport_spread" class="image-preview">
+                                            {{range .passport_spread}}
+                                            <img src="{{.}}" alt="Разворот паспорта">
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="profile__scan">
+                                    <label class="profile__label" for="scan_passport_reg">Прописка:</label>
+                                    <div class="uploadContainer profile__scan--input">
+                                        <input type="file" name="passport_registration" id="scan_passport_reg"
+                                            accept="image/*" hidden class="scan__input" multiple
+                                            data-id="passport_registration">
+                                        <div id="passport_registration" name="passport_registration"
+                                            class="image-preview">
+                                            {{range .passport_registration}}
+                                            <img src="{{.}}" alt="Прописка">
                                             {{end}}
                                         </div>
                                     </div>

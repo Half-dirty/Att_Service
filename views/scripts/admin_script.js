@@ -106,10 +106,10 @@ function closeModal(name) {
 //--USER LIST PAGE-----------------------------------
 
 //--поиск всех людей
-$('#search_all').on('input', function (e) {
+$('#search_all_input').on('input', function (e) {
     e.preventDefault();
 
-    let surname = $('#search_all').val().trim(); // Получаем введённое значение
+    let surname = $('#search_all_input').val().trim(); // Получаем введённое значение
     let content = $('.profile__user_list').empty(); // Очищаем текущий список пользователей
 
     // Если поле пустое, показываем весь список
@@ -664,12 +664,18 @@ $('#create_exam').on('click', function (e) {
 });
 
 // Отправка по Enter внутри любых input'ов
-$(document).on('keydown', function (e) {
-    if (e.key === 'Enter') {
-        let tag = e.target.tagName.toLowerCase();
-        if (tag === 'input' || tag === 'select') {
-            e.preventDefault();
-            submitExamForm();
+$(document).ready(function () {
+    $(document).on('keydown', 'input, select, textarea', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // если не хочешь чтобы он случайно форму "отправил" куда-то
+
+            const inputs = $('input, select, textarea')
+                .filter(':visible:not([disabled])');
+
+            const idx = inputs.index(this);
+            if (idx > -1 && idx + 1 < inputs.length) {
+                inputs.eq(idx + 1).focus();
+            }
         }
-    }
+    });
 });

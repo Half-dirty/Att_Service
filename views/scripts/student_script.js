@@ -40,6 +40,37 @@ const modals = {
             </div>
         </div>
     `,
+    "aproove_form":
+        `
+    <div id="aproove_form" class="popup">
+            <div class="popup__body">
+                <div class="popup__content">
+                    <div class="popup__header">
+                        <a href="" class="popup__close close-popup">
+                            <span></span>
+                        </a>
+                        <h2 class="popup__title">Вам отказали в подтверждении профиля</h2>
+                    </div>
+                    <div class="popup__form">
+                        <div class="popup__checker">
+                            <h2 class="popup__subtitle">Вы не заполнили следующие поля:</h2>
+                            <ul class="popup__list">
+                                <li class="popup__item">
+                                    пример
+                                </li>
+                                <li class="popup__item">
+                                    пример
+                                </li>
+                                <li class="popup__item">
+                                    пример
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `,
 
     "change_photo":
         `
@@ -106,6 +137,40 @@ const modals = {
                 </div>
             </div>
         </div>
+    `,
+    'reason_decline': `
+    <div id="reason_decline" class="popup">
+        <div class="popup__body">
+            <div class="popup__content">
+                <div class="popup__header">
+                    <a href="" class="popup__close close-popup">
+                        <span></span>
+                    </a>
+                    <h2 class="popup__title">Причина отказа:</h2>
+                </div>
+                <div class="popup__form">
+                    <div class="popup__checker">
+                        <form class="" id="decline-forma" enctype="multipart/form-data" method="POST" action="#">
+                            <div class="popup__list">
+                                <label class="popup__item">
+                                    <input type="checkbox" name="reason" value="invalid_name" readonly> Неверно указанное ФИО
+                                </label>
+                                <label class="popup__item">
+                                    <input type="checkbox" name="reason" value="invalid_contacts" readonly> Неверно указанные контакты
+                                </label>
+                                <label class="popup__item">
+                                    <input type="checkbox" name="reason" value="no_documents" readonly> Прикреплены не все документы
+                                </label>
+                                 <div class="popup__textarea">
+                                    <textarea placeholder="Пояснение" name="explanation" readonly></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     `
 }
 
@@ -452,10 +517,17 @@ $('#send__main_page').on('click', function (e) {
 
 //--при нажатии Enter, триггерим кнопку "Сохранить"
 $(document).ready(function () {
-    $(document).on('keydown', function (e) {
+    $(document).on('keydown', 'input, select, textarea', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault(); // если не хочешь чтобы он случайно форму "отправил" куда-то
-            $('#send__main_page').click(); // триггер кнопки "Сохранить"
+
+            const inputs = $('input, select, textarea')
+                .filter(':visible:not([disabled])');
+
+            const idx = inputs.index(this);
+            if (idx > -1 && idx + 1 < inputs.length) {
+                inputs.eq(idx + 1).focus();
+            }
         }
     });
 });
@@ -607,6 +679,159 @@ $('#profile_form').on('submit', function (e) {
         },
         error: function (xhr, status, error) {
             showAlert("Ошибка при сохранении данных!", "error");
+            console.error('AJAX Error:', status, error);
+        }
+    })
+})
+
+$('.popup__decline-form').on('click', function (e) {
+    e.preventDefault();
+    openModal('reason_decline');
+
+    let popup__body = $('.popup__list').empty();
+
+    $.ajax({
+        type: "GET",
+        url: "/user/documents/reason",
+        success: function (res) {
+            if (res.success) {
+                let list = res.list;
+                let buf = ``;
+
+                if (list.length > 0) {
+                    if (list["invalid_name"]) {
+                        buf += `<label class="popup__item">
+                            <input type="checkbox" name="reason" value="invalid_name" readonly checked> Неверно указанное ФИО
+                        </label>`;
+                    }
+                    if (list["invalid_contacts"]) {
+                        buf += `<label class="popup__item">
+                            <input type="checkbox" name="reason" value="invalid_contacts" readonly checked> Неверно указанные контакты
+                        </label>`;
+                    }
+                    if (list["no_documents"]) {
+                        buf += `<label class="popup__item">
+                            <input type="checkbox" name="reason" value="no_documents" readonly checked> Прикреплены не все документы
+                        </label>`;
+                    }
+                    if (list[explanation]) {
+                        buf += `<div class="popup__textarea">
+                          <textarea placeholder="Пояснение" name="explanation" readonly>`+ list[exaplanation] + `</textarea>
+                        </div>`;
+                    }
+
+                    popup__body.append(buf);
+                }
+            } else {
+                showAlert("Ошибка при запросе данных!", "error");
+            }
+        }, error: function (xhr, status, error) {
+            showAlert("Ошибка при запросе данных!", "error");
+            console.error('AJAX Error:', status, error);
+        }
+    })
+})
+
+$('#send__application').on('click', function (e) {
+    e.preventDefault();
+
+    let native_language = $('#native_language').val();
+    let citizenship = $('#citizenship').val();
+    let marital_status = $('#marital_status').val();
+    let organization = $('#organization').val();
+    let job_position = $('#job_position').val();
+    let requested_category = $('#requested_category').val();
+    let basis_for_attestation = $('#basis_for_attestation').val();
+    let existing_category = $('#existing_category').val();
+    let existing_category_term = $('#existing_category_term').val();
+    let work_experience = $('#work_experience').val();
+    let current_position_experience = $('#current_position_experience').val();
+    let awards_info = $('#awards_info').val();
+    let training_info = $('#training_info').val();
+    let memberships = $('#memberships').val();
+    let consent = $('#consent').prop('checked');
+
+    if (!consent) {
+        showAlert("Нам нужно ваше согласие на обработку данных", "error");
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "/user/application",
+        contentType: "application/json",
+        data: JSON.stringify({
+            native_language: native_language,
+            citizenship: citizenship,
+            marital_status: marital_status,
+            organization: organization,
+            job_position: job_position,
+            requested_category: requested_category,
+            basis_for_attestation: basis_for_attestation,
+            existing_category: existing_category,
+            existing_category_term: existing_category_term,
+            work_experience: work_experience,
+            current_position_experience: current_position_experience,
+            awards_info: awards_info,
+            training_info: training_info,
+            memberships: memberships
+        }),
+        success: function (res) {
+            if (res.success) {
+                showAlert("Данные успешно сохранены!");
+                window.location.href = "/student/application";
+            } else {
+                showAlert("Ошибка при сохранении данных!", "error");
+            }
+        },
+        error: function (xhr, status, error) {
+            showAlert("Ошибка при сохранении данных!", "error");
+            console.error('AJAX Error:', status, error);
+        }
+    })
+})
+
+
+$('.aproove_form').on('click', function (e) {
+    e.preventDefault();
+    openModal('aproove_form');
+
+    $.ajax({
+        type: "GET",
+        url: "/user/decline",
+        success: function (res) {
+            if (res.success) {
+                let list = res.list;
+                let buf = ``;
+                $('.popup__list').empty();
+                if (list.length > 0) {
+                    if (list["invalid_name"]) {
+                        buf += `<label class="popup__item">
+                            <input type="checkbox" name="reason" value="invalid_name" readonly checked> Неверно указанное ФИО
+                        </label>`;
+                    }
+                    if (list["invalid_contacts"]) {
+                        buf += `<label class="popup__item">
+                            <input type="checkbox" name="reason" value="invalid_contacts" readonly checked> Неверно указанные контакты
+                        </label>`;
+                    }
+                    if (list["no_documents"]) {
+                        buf += `<label class="popup__item">
+                            <input type="checkbox" name="reason" value="no_documents" readonly checked> Прикреплены не все документы
+                        </label>`;
+                    }
+                    if (list[explanation]) {
+                        buf += `<div class="popup__textarea">
+                          <textarea placeholder="Пояснение" name="explanation" readonly>`+ list[exaplanation] + `</textarea>
+                        </div>`;
+                    }
+                    $('.popup__list').append(buf);
+                }
+            } else {
+                showAlert("Ошибка при запросе данных!", "error");
+            }
+        }, error: function (xhr, status, error) {
+            showAlert("Ошибка при запросе данных!", "error");
             console.error('AJAX Error:', status, error);
         }
     })

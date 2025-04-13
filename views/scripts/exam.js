@@ -10,10 +10,29 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-//--маски для полей ввода
-$('#protocol_num').inputmask('99-99-99', { autoUnmask: true });
-
 $(document).ready(function () {
+    //--маски для полей ввода
+    $('#protocol_num').inputmask('99-99-99', {autoUnmask: true});
+
+    $('.exam__radio-label').on('click', function () {
+        const radioId = $(this).data('radio-for');
+        const radioButton = $('#' + radioId);
+
+        // Убираем выделение со всех радиокнопок
+        radioButton.closest('tr').find('input[type="radio"]').prop('checked', false);
+
+        // Устанавливаем флаг "checked" на соответствующую радиокнопку
+        radioButton.prop('checked', true);
+        console.log(radioButton.prop('checked'), radioButton.attr('id'));
+
+
+        // Меняем цвет или стиль div, чтобы показать, что он выбран
+        $(this).closest('tr').find('div').css('background-color', '#f0f0f0'); // сбрасываем фон
+        $(this).css('background-color', '#2f68d5'); // меняем фон выбранного элемента
+
+        updateScores();
+    });
+
     function updateScores() {
         let totalScore = 0;
         let totalCount = 0;
@@ -28,20 +47,15 @@ $(document).ready(function () {
                 columnSums[value]++;
             }
         });
+        
+        let total = 0;
+        for (let i = 0; i < columnSums.length; i++) {
+            total += i * columnSums[i];
+        }
 
-        // Обновляем поля суммы по столбцам
-        columnSums.forEach((sum, index) => {
-            $(`#point${index}`).val(sum);
-        });
-
-        // Вычисляем средний балл
-        let averageScore = totalCount > 0 ? (totalScore / totalCount).toFixed(2) : 0;
-        averageScore = Math.round(averageScore * 100) / 100;
-        $("#total").val(averageScore);
+        $("#total").val(totalScore);
     }
 
-    $(".exam__question-row input[type='radio']").on("change", updateScores);
-    updateScores();
 
     // Ограничение высоты textarea
     function adjustHeight(el) {
@@ -64,6 +78,14 @@ $(document).ready(function () {
         if ($(this).is(":checked")) {
             $("input[id='recomendation'], input[name='point'], input[id='total'], select, textarea").not(".exam__buttons-subscribe").prop("disabled", true).val("");
             $("input[type='radio']").not(".exam__buttons-subscribe").prop("disabled", true).prop("checked", false);
+            const radioIds = $('.exam__radio-label');
+            radioIds.each(function () {
+                const radioId = $(this).data('radio-for');
+                const radioButton = $('#' + radioId);
+                radioButton.prop('checked', false);
+                $(this).css('background-color', '#f0f0f0'); // сбрасываем фон
+            });
+
             if ($('#recomendation')) {
                 $('#recomendation').val('').trigger('input');
             }

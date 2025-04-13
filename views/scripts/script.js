@@ -9,6 +9,28 @@ $(document).ready(function () {
 });
 
 
+$(document).ready(function () {
+    $(document).on('keydown', 'button', function () {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            $('#send__main_page').click();
+        }
+    });
+    $(document).on('keydown', 'input, select, textarea', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // если не хочешь чтобы он случайно форму "отправил" куда-то
+
+            const inputs = $('input, select, textarea')
+                .filter(':visible:not([disabled])');
+
+            const idx = inputs.index(this);
+            if (idx > -1 && idx + 1 < inputs.length) {
+                inputs.eq(idx + 1).focus();
+            }
+        }
+    });
+});
+
 /* 
 LOGIN FORM
     get -
