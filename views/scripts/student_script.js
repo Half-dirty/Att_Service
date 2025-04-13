@@ -421,7 +421,7 @@ $(document).on('click', '#change_photo-button', function (e) {
         dataType: 'json',
         success: function (res) {
             if (res['success']) {
-                return window.location.href = "/";
+                return window.location.href = "/user/profile";
             }
         },
         error: function (xhr, status, error) {
