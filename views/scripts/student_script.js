@@ -413,7 +413,7 @@ $(document).on('click', '#change_photo-button', function (e) {
 
     $.ajax({
         type: "POST",
-        url: "/student/change/photo",
+        url: "/user/change/photo",
         cache: false,
         contentType: false,
         processData: false,
@@ -779,7 +779,7 @@ $('#send__application').on('click', function (e) {
         success: function (res) {
             if (res.success) {
                 showAlert("Данные успешно сохранены!");
-                window.location.href = "/student/application";
+                window.location.href = "/user/application";
             } else {
                 showAlert("Ошибка при сохранении данных!", "error");
             }
