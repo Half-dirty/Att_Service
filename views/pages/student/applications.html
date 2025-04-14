@@ -50,7 +50,7 @@
                             {{end}}
                         </div>                        
                     </div>
-                    <img class="header__profile-avatar" src="../../pictures/Generic avatar.png" alt="Profile Avatar">
+                    <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
                 </div>
             </div>
         </header>
@@ -85,7 +85,7 @@
                 <div class="profile__body">
                     <div class="profile__create">
                         <h2 class="profile__create-text">Создать заявку на аттестацию</h2>
-                        <a href="./create_application.html" class="profile__create-button">Создать</a>
+                        <a href="/user/create-application" class="profile__create-button">Создать</a>
                     </div>
                     <div class="profile__application-list">
                         <div class="profile__application-item profile__application-item--active">

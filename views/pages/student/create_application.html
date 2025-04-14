@@ -14,7 +14,7 @@
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
-                <a class="header__logo" href="./index.html">
+                <a class="header__logo" href="/">
                     <img class="header__logo-img" src="../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
@@ -50,7 +50,7 @@
                             {{end}}
                         </div>                        
                     </div>
-                    <img class="header__profile-avatar" src="../../pictures/Generic avatar.png" alt="Profile Avatar">
+                    <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
                 </div>
             </div>
         </header>

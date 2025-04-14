@@ -848,6 +848,230 @@ func SaveMainPageData(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
+func SaveUserApplication(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	if userID == 0 {
+		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
+	}
+
+	var input struct {
+		NativeLanguage            string `json:"native_language"`
+		Citizenship               string `json:"citizenship"`
+		MaritalStatus             string `json:"marital_status"`
+		Organization              string `json:"organization"`
+		JobPosition               string `json:"job_position"`
+		RequestedCategory         string `json:"requested_category"`
+		BasisForAttestation       string `json:"basis_for_attestation"`
+		ExistingCategory          string `json:"existing_category"`
+		ExistingCategoryTerm      string `json:"existing_category_term"`
+		WorkExperience            string `json:"work_experience"`
+		CurrentPositionExperience string `json:"current_position_experience"`
+		AwardsInfo                string `json:"awards_info"`
+		TrainingInfo              string `json:"training_info"`
+		Memberships               string `json:"memberships"`
+		Consent                   bool   `json:"consent"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Неверный формат данных"})
+	}
+
+	if !input.Consent {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Необходимо согласие на обработку персональных данных"})
+	}
+
+	var app models.Application
+	err := database.DB.Where("user_id = ?", userID).First(&app).Error
+	if err != nil {
+		// если нет заявки — создаём
+		app = models.Application{UserID: userID}
+	}
+
+	if input.NativeLanguage != "" {
+		app.NativeLanguage = input.NativeLanguage
+	}
+	if input.Citizenship != "" {
+		app.Citizenship = input.Citizenship
+	}
+	if input.MaritalStatus != "" {
+		app.MaritalStatus = input.MaritalStatus
+	}
+	if input.Organization != "" {
+		app.Organization = input.Organization
+	}
+	if input.JobPosition != "" {
+		app.JobPosition = input.JobPosition
+	}
+	if input.RequestedCategory != "" {
+		app.RequestedCategory = input.RequestedCategory
+	}
+	if input.BasisForAttestation != "" {
+		app.BasisForAttestation = input.BasisForAttestation
+	}
+	if input.ExistingCategory != "" {
+		app.ExistingCategory = input.ExistingCategory
+	}
+	if input.ExistingCategoryTerm != "" {
+		app.ExistingCategoryTerm = input.ExistingCategoryTerm
+	}
+	if input.WorkExperience != "" {
+		app.WorkExperience = input.WorkExperience
+	}
+	if input.CurrentPositionExperience != "" {
+		app.CurrentPositionExperience = input.CurrentPositionExperience
+	}
+	if input.AwardsInfo != "" {
+		app.AwardsInfo = input.AwardsInfo
+	}
+	if input.TrainingInfo != "" {
+		app.TrainingInfo = input.TrainingInfo
+	}
+	if input.Memberships != "" {
+		app.Memberships = input.Memberships
+	}
+	app.Consent = input.Consent
+
+	// сохраняем либо создаём
+	if err != nil {
+		if err := database.DB.Create(&app).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка создания данных"})
+		}
+	} else {
+		if err := database.DB.Save(&app).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка сохранения данных"})
+		}
+	}
+
+	return c.JSON(fiber.Map{"success": true})
+}
+
+func GetUserCreateApplicationPage(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(uint)
+	if !ok || userID == 0 {
+		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
+	}
+
+	avatarPath := ""
+	if user.StoragePath != "" {
+		if files, err := os.ReadDir(user.StoragePath); err == nil {
+			for _, f := range files {
+				if strings.HasPrefix(f.Name(), "avatar") {
+					avatarPath = "/uploads/" + filepath.Base(user.StoragePath) + "/" + f.Name()
+					break
+				}
+			}
+		}
+	}
+
+	return services.Render(c, "student", "create_application.html", fiber.Map{
+		"status":                      user.Status,
+		"role":                        user.Role,
+		"avatar":                      avatarPath,
+		"path":                        c.Path(),
+		"native_language":             "",
+		"citizenship":                 "",
+		"marital_status":              "",
+		"organization":                "",
+		"job_position":                "",
+		"requested_category":          "",
+		"basis_for_attestation":       "",
+		"existing_category":           "",
+		"existing_category_term":      "",
+		"work_experience":             "",
+		"current_position_experience": "",
+		"awards_info":                 "",
+		"training_info":               "",
+		"memberships":                 "",
+		"consent":                     false,
+	})
+}
+
+func GetUserApplicationPage(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
+	}
+
+	avatarPath := ""
+	if user.StoragePath != "" {
+		files, _ := os.ReadDir(user.StoragePath)
+		for _, file := range files {
+			if strings.Contains(file.Name(), "avatar") {
+				avatarPath = "/uploads/" + filepath.Base(user.StoragePath) + "/" + file.Name()
+				break
+			}
+		}
+	}
+
+	// Загружаем все заявки пользователя
+	var applications []models.Application
+	if err := database.DB.Where("user_id = ?", userID).Find(&applications).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки заявок")
+	}
+
+	// Формируем список для шаблона
+	type ApplicationItem struct {
+		Number string
+		Status string
+	}
+	var list []ApplicationItem
+	for _, app := range applications {
+		list = append(list, ApplicationItem{
+			Number: app.ApplicationNumber,
+			Status: strings.ToLower(app.ApplicationType), // можно поменять на app.Status если в модели есть статус
+		})
+	}
+
+	return services.Render(c, "student", "applications.html", fiber.Map{
+		"status":       user.Status,
+		"role":         user.Role,
+		"avatar":       avatarPath,
+		"id":           userID,
+		"path":         c.Path(),
+		"applications": list, // можно рендерить циклом в html
+	})
+}
+
+// func GetUserApplicationPage(c *fiber.Ctx) error {
+// 	userID, ok := c.Locals("userID").(uint)
+// 	if !ok || userID == 0 {
+// 		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
+// 	}
+
+// 	var application models.Application
+// 	// Проверяем есть ли уже заявление у пользователя
+// 	if err := database.DB.Where("user_id = ?", userID).First(&application).Error; err != nil {
+// 		// Если нет — создаём пустое (опционально)
+// 		application = models.Application{}
+// 	}
+
+// 	return services.Render(c, "student", "create_application.html", fiber.Map{
+// 		"native_language":             application.NativeLanguage,
+// 		"citizenship":                 application.Citizenship,
+// 		"marital_status":              application.MaritalStatus,
+// 		"organization":                application.Organization,
+// 		"job_position":                application.JobPosition,
+// 		"requested_category":          application.RequestedCategory,
+// 		"basis_for_attestation":       application.BasisForAttestation,
+// 		"existing_category":           application.ExistingCategory,
+// 		"existing_category_term":      application.ExistingCategoryTerm,
+// 		"work_experience":             application.WorkExperience,
+// 		"current_position_experience": application.CurrentPositionExperience,
+// 		"awards_info":                 application.AwardsInfo,
+// 		"training_info":               application.TrainingInfo,
+// 		"memberships":                 application.Memberships,
+// 		"consent":                     application.Consent,
+// 		"path":                        c.Path(),
+// 	})
+// }
+
 // Вспомогательные функции.
 func generateFolderName(jestID, docType string) string {
 	safeDocType := sanitizeString(docType)

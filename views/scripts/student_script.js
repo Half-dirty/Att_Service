@@ -757,7 +757,7 @@ $('#send__application').on('click', function (e) {
 
     $.ajax({
         type: "POST",
-        url: "/user/application",
+        url: "/user/create-application",
         contentType: "application/json",
         data: JSON.stringify({
             native_language: native_language,
@@ -773,7 +773,8 @@ $('#send__application').on('click', function (e) {
             current_position_experience: current_position_experience,
             awards_info: awards_info,
             training_info: training_info,
-            memberships: memberships
+            memberships: memberships,
+            consent: consent
         }),
         success: function (res) {
             if (res.success) {

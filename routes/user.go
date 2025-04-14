@@ -20,4 +20,7 @@ func RegisterUserRoutes(app *fiber.App) {
 	userGroup.Get("/data/correct", controllers.CheckUserDataCorrectness)
 	userGroup.Post("/data/aprove", controllers.ApproveUserBySelf)
 	userGroup.Get("/decline", controllers.GetDeclineReasons)
+	userGroup.Get("/application", controllers.GetUserApplicationPage)
+	userGroup.Get("/create-application", controllers.GetUserCreateApplicationPage)
+	userGroup.Post("/create-application", controllers.SaveUserApplication)
 }

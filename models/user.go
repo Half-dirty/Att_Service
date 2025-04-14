@@ -46,6 +46,30 @@ type User struct {
 	RefreshToken string `gorm:"type:text;column:refresh_token"`
 }
 
+type Application struct {
+	ID                        uint   `gorm:"primaryKey"`
+	UserID                    uint   `gorm:"not null"` // внешний ключ
+	ApplicationType           string `gorm:"size:255"`
+	ApplicationNumber         string `gorm:"size:255"`
+	NativeLanguage            string `gorm:"size:255"`
+	Citizenship               string `gorm:"size:255"`
+	MaritalStatus             string `gorm:"size:255"`
+	Organization              string `gorm:"size:255"`
+	JobPosition               string `gorm:"size:255"`
+	RequestedCategory         string `gorm:"size:255"`
+	BasisForAttestation       string `gorm:"size:255"`
+	ExistingCategory          string `gorm:"size:255"`
+	ExistingCategoryTerm      string `gorm:"size:255"`
+	WorkExperience            string `gorm:"size:255"`
+	CurrentPositionExperience string `gorm:"size:255"`
+	AwardsInfo                string `gorm:"size:255"`
+	TrainingInfo              string `gorm:"size:255"`
+	Memberships               string `gorm:"size:255"`
+	Consent                   bool
+	CreatedAt                 time.Time
+	UpdatedAt                 time.Time
+}
+
 // UserDocument представляет загруженный пользователем документ.
 type UserDocument struct {
 	gorm.Model
