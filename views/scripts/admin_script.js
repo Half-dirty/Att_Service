@@ -193,13 +193,10 @@ $('#users_role').on('change', function (e) {
                         '   </h2>' +
                         '</div>' +
                         '<div class="profile__user-selector">' +
-                        '    <div class="profile__menu-icon">' +
-                        '        <span></span>' +
-                        '    </div>' +
                         '    <ul class="profile__user-menu">' +
-                        '        <li><a href="/admin/show/student/:' + user['id'] + '"' +
+                        '        <li><a href="/admin/show/student/' + user['id'] + '"' +
                         '                class="profile__user-link">Посмотреть аккаунт</a></li>' +
-                        '        <li><a href="/admin/delete/student/:' + user['id'] + '"' +
+                        '        <li><a href="/admin/delete/student/' + user['id'] + '"' +
                         '                class="profile__user-link">Удалить аккаунт</a></li>' +
                         '    </ul>' +
                         '</div>' +
@@ -299,12 +296,9 @@ function generateUserHTML(user) {
         '   </h2>' +
         '</div>' +
         '<div class="profile__user-selector">' +
-        '    <div class="profile__menu-icon">' +
-        '        <span></span>' +
-        '    </div>' +
         '    <ul class="profile__user-menu">' +
-        '        <li><a href="/admin/show/student/:' + user['id'] + '" class="profile__user-link">Посмотреть аккаунт</a></li>' +
-        '        <li><a href="/admin/delete/student/:' + user['id'] + '" class="profile__user-link">Удалить аккаунт</a></li>' +
+        '        <li><a href="/admin/show/student/' + user['id'] + '" class="profile__user-link">Посмотреть аккаунт</a></li>' +
+        '        <li><a href="/admin/delete/student/' + user['id'] + '" class="profile__user-link">Удалить аккаунт</a></li>' +
         '    </ul>' +
         '</div>' +
         '</div>';
@@ -363,13 +357,10 @@ $('#users_role_application').on('change', function (e) {
                         '   </h2>' +
                         '</div>' +
                         '<div class="profile__user-selector">' +
-                        '    <div class="profile__menu-icon">' +
-                        '        <span></span>' +
-                        '    </div>' +
                         '    <ul class="profile__user-menu">' +
-                        '        <li><a href="/admin/show/student/:' + user['id'] + '"' +
+                        '        <li><a href="/admin/show/student/' + user['id'] + '"' +
                         '                class="profile__user-link">Посмотреть аккаунт</a></li>' +
-                        '        <li><a href="/admin/delete/student/:' + user['id'] + '"' +
+                        '        <li><a href="/admin/delete/student/' + user['id'] + '"' +
                         '                class="profile__user-link">Удалить аккаунт</a></li>' +
                         '    </ul>' +
                         '</div>' +
@@ -398,52 +389,27 @@ $('#users_role_application').on('change', function (e) {
 //--изменение роли пользователя (выпадающий список)
 $('#role-select').on('change', function (e) {
     e.preventDefault();
-    let role = $('#role-select').val();
 
-    $(this).removeClass('header__role-text--student header__role-text--examiner');
+    let role = $(this).val();
+
+    // удаляем старые классы цвета
+    $(this).removeClass('header__role-select--student header__role-select--examiner');
+
+    // добавляем новый класс цвета
     if (role === "examiner") {
-        $(this).closest('.header__role-text').addClass('header__role-text--examiner');
+        $(this).addClass('header__role-select--examiner');
     } else {
-        $(this).closest('.header__role-text').addClass('header__role-text--student');
+        $(this).addClass('header__role-select--student');
     }
 
-    /*
-    НУЖНО ЕЩЕ ПОЛУЧАТЬ ID ЧЕЛОВЕКА, КОТОРОМУ МЕНЯЕМ РОЛЬ
-    И ВЫСЫЛАТЬ ЕГО В AJAX, ЧТОБЫ МЕНЯЛАСЬ РОЛЬ У НУЖНОГО ПОЛЬЗОВАТЕЛЯ
-
-    Получить id или любое другое значение из URL на фронте можно несколькими способами — в зависимости от того, как именно этот id у тебя передаётся. Вот самые распространённые:
-    1. Если id находится в параметрах пути (например):
-    https://example.com/user/12345
-
-    Получение вручную:
+    // Получаем id пользователя из URL
     const pathParts = window.location.pathname.split('/');
-    const id = pathParts[pathParts.length - 1]; // "12345"
+    const id = pathParts[4];
 
-    Или, если строго знаешь структуру:
-    // /user/12345 -> id = 12345
-    const id = window.location.pathname.split('/')[2];
-
-
-    2. Если id передаётся через query-параметры:
-    https://example.com/profile?id=12345
-
-    Способ с URLSearchParams:
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id'); // "12345"
-
-
-    3. Если id есть в хэше (anchor):
-    https://example.com/#id=12345
-
-    Получение:
-    const hash = window.location.hash; // "#id=12345"
-    const id = hash.split('=')[1];     // "12345"
-    */
-
-
+    // Отправляем ajax на сервер для сохранения роли
     $.ajax({
         type: "POST",
-        url: "/admin/change_role",
+        url: `/admin/change_role?id=${id}`,
         contentType: "application/json",
         data: JSON.stringify({ role: role }),
         success: function (res) {
@@ -452,7 +418,8 @@ $('#role-select').on('change', function (e) {
             } else {
                 showAlert("Ошибка при сохранении данных!", "error");
             }
-        }, error: function (xhr, status, error) {
+        },
+        error: function (xhr, status, error) {
             showAlert("Ошибка при сохранении данных!", "error");
             console.error('AJAX Error:', status, error);
         }
@@ -460,24 +427,35 @@ $('#role-select').on('change', function (e) {
 });
 
 
+
 //--подтвердить профиль
 $('#decision-accept').on('click', function (e) {
     e.preventDefault();
+
+    const pathParts = window.location.pathname.split('/');
+    const id = pathParts[4];
+    if (!id) {
+        alert("ID пользователя не найден");
+        return;
+    }
+
     $.ajax({
         type: "POST",
-        url: "/admin/student/confirm",
+        url: `/admin/student/confirm/${id}`,
         contentType: "application/json",
         data: JSON.stringify({ confirm: true }),
         success: function (res) {
-            if (res['success']) {
-                return window.location.href = "/admin/user/application";
+            if (res.success) {
+                window.location.href = "/admin/user/application";
+            } else {
+                alert("Не удалось подтвердить пользователя");
             }
-        }, error: function (xhr, status, error) {
-            showAlert("Ошибка при сохранении данных!", "error");
-            console.error('AJAX Error:', status, error);
+        },
+        error: function () {
+            alert("Ошибка при подтверждении");
         }
-    })
-})
+    });
+});
 
 
 //--отклонить профиль (открытие модалки)
@@ -521,9 +499,16 @@ $(document).on('submit', '#decline-forma', function (e) {
         formData['explanation'] = explanation;
     }
 
+    const pathParts = window.location.pathname.split('/');
+    const id = pathParts[4];
+    if (!id) {
+        alert("ID пользователя не найден");
+        return;
+    }
+
     $.ajax({
         type: "POST",
-        url: "/admin/decline",
+        url: `/admin/decline/${id}`,
         cache: false,
         processData: false,
         contentType: "application/json",
@@ -531,7 +516,7 @@ $(document).on('submit', '#decline-forma', function (e) {
         dataType: 'json',
         success: function (res) {
             if (res['success']) {
-                return window.location.href = "/";
+                return window.location.href = "/admin/user/application";
             }
         }, error: function (xhr, status, error) {
             showAlert("Ошибка при сохранении данных!", "error");

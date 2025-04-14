@@ -31,6 +31,10 @@
                             <h2>Статус:</h2>
                             {{if or (eq .status "pending") (eq .status "")}}
                             <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>                            
+                            {{end}}
+                            {{if eq .status "declined"}}
+                            <a href="#" class="header__status-button aproove_form" name="aproove_form">Отказ</a>
                             <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>
                             {{end}}
                             {{if eq .status "approved"}}
@@ -39,8 +43,12 @@
                         </div>
                         <div class="header__role">
                             <h2>Роль:</h2>
-                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
-                        </div>
+                            {{if eq .role "student"}}
+                                <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                            {{else if eq .role "examiner"}}
+                                <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                            {{end}}
+                        </div>                        
                     </div>
                     <img class="header__profile-avatar"
                         src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}"
@@ -58,7 +66,7 @@
                     <li class="menu__item {{if eq .path "/user/document"}}menu__item--active{{end}}">
                         <a href="/user/document" type="button" class="menu__button">Документы</a>
                     </li>
-                    {{if eq .status "pending"}}
+                    {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
                     <li class="menu__item menu__item--disabled">
                         <a href="#" class="menu__button popup__link" name="aplication_form">Мои заявления</a>
                     </li>

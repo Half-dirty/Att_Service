@@ -63,17 +63,17 @@
                 <div class="profile__users">
                     <div class="profile__user_list">
                         {{range .Lists}}
-                        <div class="profile__user" id={{.id}}>
-                            <div class="profile__user-name" name=`{{.surname}}_{{.name}}_{{.lastname}}`>
+                        <div class="profile__user" id={{.ID}}>
+                            <div class="profile__user-name" name="{{.Surname}}_{{.Name}}_{{.Lastname}}">
                                 <h2>
-                                    <img src={{.avatar}}>
-                                    {{.surname}} {{.name}} {{.lastname}}
+                                    <img src={{.Avatar}}>
+                                    {{.Surname}} {{.Name}} {{.Lastname}}
                                     <div class="header__role">
-                                        {{if eq .role "admin"}}
+                                        {{if eq .Role "admin"}}
                                         <h2 class="header__role-text header__role-text--admin">Администратор</h2>
-                                        {{else if eq .role "student"}}
+                                        {{else if eq .Role "student"}}
                                         <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
-                                        {{else if eq .role "examiner"}}
+                                        {{else if eq .Role "examiner"}}
                                         <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
                                         {{end}}
                                     </div>

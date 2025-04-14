@@ -20,7 +20,44 @@ import (
 
 // AdminPage возвращает главную страницу администратора (pages/admin_page.html)
 func AdminPage(c *fiber.Ctx) error {
-	return c.SendFile("./pages/admin_page.html")
+	return c.SendFile("views/pages/admin/main.html")
+}
+
+// AdminChangeUserRole меняет роль пользователя по ID
+func AdminChangeUserRole(c *fiber.Ctx) error {
+	// Структура запроса
+	type request struct {
+		Role string `json:"role"`
+	}
+
+	var body request
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Неверный формат данных"})
+	}
+
+	// Получаем ID пользователя из URL
+	idParam := c.Query("id") // /admin/change_role?id=123
+	if idParam == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "ID пользователя не указан"})
+	}
+
+	// Парсим id
+	userID, err := strconv.Atoi(idParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Некорректный ID"})
+	}
+
+	// Проверяем корректность роли
+	if body.Role != "student" && body.Role != "examiner" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Некорректная роль"})
+	}
+
+	// Обновляем роль пользователя в БД
+	if err := database.DB.Model(&models.User{}).Where("id = ?", userID).Update("role", body.Role).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "error": "Ошибка обновления роли"})
+	}
+
+	return c.JSON(fiber.Map{"success": true})
 }
 
 func AdminDeclineStudent(c *fiber.Ctx) error {
@@ -146,6 +183,7 @@ func AdminShowStudentProfile(c *fiber.Ctx) error {
 		"avatar":         avatar,
 		"showButtons":    showButtons,
 		"decline_reason": student.DeclineReason,
+		"role":           student.Role,
 	})
 }
 
@@ -231,6 +269,7 @@ func AdminShowStudentDocuments(c *fiber.Ctx) error {
 		"diplom_images":   diplomImages,
 		"showButtons":     showButtons,
 		"decline_reason":  student.DeclineReason,
+		"role":            student.Role,
 	})
 }
 

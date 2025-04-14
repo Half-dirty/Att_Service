@@ -19,5 +19,5 @@ func RegisterUserRoutes(app *fiber.App) {
 	userGroup.Post("/documents/send", controllers.UploadUserDocuments)
 	userGroup.Get("/data/correct", controllers.CheckUserDataCorrectness)
 	userGroup.Post("/data/aprove", controllers.ApproveUserBySelf)
-
+	userGroup.Get("/decline", controllers.GetDeclineReasons)
 }

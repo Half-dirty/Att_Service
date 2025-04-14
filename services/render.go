@@ -19,6 +19,9 @@ var templateFuncs = template.FuncMap{
 
 // Renders a template from views-pages/pages/{role}/{path}
 func Render(c *fiber.Ctx, userRole string, relativePath string, data map[string]interface{}) error {
+	if userRole == "examiner" {
+		userRole = "student"
+	}
 	tplPath := filepath.Join("views", "pages", userRole, relativePath)
 
 	if _, err := os.Stat(tplPath); os.IsNotExist(err) {

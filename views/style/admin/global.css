@@ -514,3 +514,26 @@
   visibility: visible;
   opacity: 1;
 }
+
+/* Общий стиль select для роли */
+.header__role-select {
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 0 5px;
+  font-weight: normal;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Стиль Аттестуемый (student) */
+.header__role-select--student {
+  background-color: #f5d999; /* бежевый */
+  color: black;
+}
+
+/* Стиль Экзаменатор (examiner) */
+.header__role-select--examiner {
+  background-color: #23a03c; /* зелёный */
+  color: white;
+}

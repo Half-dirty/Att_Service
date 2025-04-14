@@ -68,7 +68,6 @@
                                     {{.Surname}} {{.Name}} {{.Lastname}}
                                     <div class="header__role">
                                         {{if eq .Role "admin"}}
-
                                         <h2 class="header__role-text header__role-text--admin">Администратор</h2>
                                         {{else if eq .Role "student"}}
                                         <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
@@ -78,14 +77,10 @@
                                     </div>
                                 </h2>
                             </div>
-                            <div class="profile__user-selector">
-                                <ul class="profile__user-menu">
-                                    <li><a href="/admin/show/student/{{.ID}}" class="profile__user-link">Посмотреть
-                                            аккаунт</a></li>
-                                    <li><a href="/admin/delete/student/{{.ID}}" class="profile__user-link">Удалить
-                                            аккаунт</a></li>
-                                </ul>
-                            </div>
+                            <ul class="profile__user-menu">
+                                <li><a href="/admin/show/student/{{.ID}}" class="profile__user-link">Посмотреть аккаунт</a></li>
+                                <li><a href="/admin/delete/student/{{.ID}}" class="profile__user-link">Удалить аккаунт</a></li>
+                            </ul>                            
                         </div>
                         {{end}}
                     </div>

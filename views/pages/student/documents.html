@@ -32,6 +32,10 @@
                             <h2>Статус:</h2>
                             {{if or (eq .status "pending") (eq .status "")}}
                             <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>                            
+                            {{end}}
+                            {{if eq .status "declined"}}
+                            <a href="#" class="header__status-button aproove_form" name="aproove_form">Отказ</a>
                             <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>
                             {{end}}
                             {{if eq .status "approved"}}
@@ -40,8 +44,12 @@
                         </div>
                         <div class="header__role">
                             <h2>Роль:</h2>
-                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
-                        </div>
+                            {{if eq .role "student"}}
+                                <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                            {{else if eq .role "examiner"}}
+                                <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                            {{end}}
+                        </div>                       
                     </div>
                     <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
                 </div>
@@ -59,7 +67,7 @@
                         <a href="/user/document" class="menu__button">Документы</a>
                     </li>
 
-                    {{if eq .status "pending"}}
+                    {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
                     <li class="menu__item menu__item--disabled">
                         <a href="#" class="menu__button popup__link" name="aplication_form">Мои заявления</a>
                     </li>
@@ -137,31 +145,15 @@
                                         id="registr_address">{{.registr_address}}</textarea>
                                 </div>
                             </div>
-
                             <div class="profile__row">
                                 <div class="profile__scan">
-                                    <label class="profile__label" for="scan_passport_turn">Разворот паспорта:</label>
+                                    <label class="profile__label" for="passport_all">Сканы паспорта:</label>
                                     <div class="uploadContainer profile__scan--input">
-                                        <input type="file" name="passport_spread" id="scan_passport_turn"
-                                            accept="image/*" hidden class="scan__input" multiple
-                                            data-id="passport_spread">
-                                        <div id="passport_spread" name="passport_spread" class="image-preview">
-                                            {{range .passport_spread}}
-                                            <img src="{{.}}" alt="Разворот паспорта">
-                                            {{end}}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="profile__scan">
-                                    <label class="profile__label" for="scan_passport_reg">Прописка:</label>
-                                    <div class="uploadContainer profile__scan--input">
-                                        <input type="file" name="passport_registration" id="scan_passport_reg"
-                                            accept="image/*" hidden class="scan__input" multiple
-                                            data-id="passport_registration">
-                                        <div id="passport_registration" name="passport_registration"
-                                            class="image-preview">
-                                            {{range .passport_registration}}
-                                            <img src="{{.}}" alt="Прописка">
+                                        <input type="file" name="passport_all" id="passport_all" accept="image/*" hidden
+                                            class="scan__input" multiple data-id="passport_all_preview">
+                                        <div id="passport_all_preview" class="image-preview">
+                                            {{range .passport_images}}
+                                            <img src="{{.}}" alt="Паспорт">
                                             {{end}}
                                         </div>
                                     </div>

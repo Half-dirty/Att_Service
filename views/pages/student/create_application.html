@@ -29,14 +29,26 @@
                     <div class="header__profile-info">
                         <div class="header__status">
                             <h2>Статус:</h2>
+                            {{if or (eq .status "pending") (eq .status "")}}
                             <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
-                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>                            
+                            {{end}}
+                            {{if eq .status "declined"}}
                             <a href="#" class="header__status-button aproove_form" name="aproove_form">Отказ</a>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>
+                            {{end}}
+                            {{if eq .status "approved"}}
+                            <h2 class="header__status-text header__status-text--active">Подтвержден</h2>
+                            {{end}}
                         </div>
                         <div class="header__role">
                             <h2>Роль:</h2>
-                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
-                        </div>
+                            {{if eq .role "student"}}
+                                <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                            {{else if eq .role "examiner"}}
+                                <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                            {{end}}
+                        </div>                        
                     </div>
                     <img class="header__profile-avatar" src="../../pictures/Generic avatar.png" alt="Profile Avatar">
                 </div>

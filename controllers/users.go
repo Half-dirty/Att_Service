@@ -214,6 +214,7 @@ func GetUserDocuments(c *fiber.Ctx) error {
 		"bithday_date":    formatDate(&passport.BirthDate),
 		"born_place":      passport.BirthPlace,
 		"registr_address": passport.RegistrationAddress,
+		"role":            user.Role,
 
 		"snils_num":  user.Snils,
 		"diplom_num": eduDoc.DiplomaRegNumber,
@@ -224,6 +225,53 @@ func GetUserDocuments(c *fiber.Ctx) error {
 		"avatar":          avatarPath,
 		"path":            c.Path(),
 		"decline_reason":  user.DeclineReason,
+	})
+}
+
+func GetDeclineReasons(c *fiber.Ctx) error {
+	// Получаем userID из авторизации (middleware)
+	userID := c.Locals("userID")
+
+	if userID == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "error": "Unauthorized"})
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": "User not found"})
+	}
+
+	reasons := make(map[string]bool)
+	explanation := ""
+
+	parts := strings.Split(user.DeclineReason, " | ")
+
+	if len(parts) > 0 {
+		reasonsPart := parts[0]
+
+		if strings.Contains(reasonsPart, "ФИО") {
+			reasons["invalid_name"] = true
+		}
+		if strings.Contains(reasonsPart, "контакт") {
+			reasons["invalid_contacts"] = true
+		}
+		if strings.Contains(reasonsPart, "документ") {
+			reasons["no_documents"] = true
+		}
+	}
+
+	if len(parts) > 1 {
+		explanation = strings.TrimSpace(parts[1])
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"list": fiber.Map{
+			"invalid_name":     reasons["invalid_name"],
+			"invalid_contacts": reasons["invalid_contacts"],
+			"no_documents":     reasons["no_documents"],
+			"explanation":      explanation,
+		},
 	})
 }
 

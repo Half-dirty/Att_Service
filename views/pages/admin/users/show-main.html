@@ -38,11 +38,11 @@
                         </div>
                         <div class="header__role">
                             <h2>Роль:</h2>
-                            <select class="header__role-text header__role-text--student" id="role-select">
-                                <option value="student">Аттестуемый</option>
-                                <option value="examiner">Экзаменатор</option>
+                            <select class="header__role-select {{if eq .role "student"}}header__role-select--student{{else if eq .role "examiner"}}header__role-select--examiner{{end}}" id="role-select">
+                                <option value="student" {{if eq .role "student"}}selected{{end}}>Аттестуемый</option>
+                                <option value="examiner" {{if eq .role "examiner"}}selected{{end}}>Экзаменатор</option>
                             </select>
-                        </div>
+                        </div>                                                                                        
                     </div>
                     <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
                 </div>
@@ -53,10 +53,12 @@
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item menu__item--active">
-                        <a href="/student/show/:id" class="menu__button">Личные данные</a>
+                        <a href="/admin/show/student/{{.id}}{{if .showButtons}}?source=application{{end}}"
+                            class="menu__button">Личные данные</a>
                     </li>
                     <li class="menu__item">
-                        <a href="/student/show/document/:id" type="button" class="menu__button">Документы</a>
+                        <a href="/admin/show/document/{{.id}}{{if .showButtons}}?source=application{{end}}"
+                            class="menu__button">Документы</a>
                     </li>
                 </ul>
             </nav>

@@ -21,6 +21,8 @@ Thumbs.db
 # Загрузки пользователей и архивы
 /uploads/
 /archive/
+/scripts/
+/pages/
 
 # Системные файлы Go
 *.exe

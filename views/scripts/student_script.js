@@ -53,7 +53,6 @@ const modals = {
                     </div>
                     <div class="popup__form">
                         <div class="popup__checker">
-                            <h2 class="popup__subtitle">Вы не заполнили следующие поля:</h2>
                             <ul class="popup__list">
                                 <li class="popup__item">
                                     пример
@@ -280,9 +279,9 @@ $(".popup__link").click(function (e) {
             }
             body.append(buf);
 
-            $('.send__for_agree').on('click', function (e) {
+            $('#send__for_agree').on('click', function (e) {
                 e.preventDefault();
-                let status = $('.send__for_agree').hasClass('popup__send--disabled');
+                let status = $('#send__for_agree').hasClass('popup__send--disabled');
                 if (status) {
                     alert('вы не заполнили все данные');
                     return
@@ -804,35 +803,27 @@ $('.aproove_form').on('click', function (e) {
                 let list = res.list;
                 let buf = ``;
                 $('.popup__list').empty();
-                if (list.length > 0) {
-                    if (list["invalid_name"]) {
-                        buf += `<label class="popup__item">
-                            <input type="checkbox" name="reason" value="invalid_name" readonly checked> Неверно указанное ФИО
-                        </label>`;
-                    }
-                    if (list["invalid_contacts"]) {
-                        buf += `<label class="popup__item">
-                            <input type="checkbox" name="reason" value="invalid_contacts" readonly checked> Неверно указанные контакты
-                        </label>`;
-                    }
-                    if (list["no_documents"]) {
-                        buf += `<label class="popup__item">
-                            <input type="checkbox" name="reason" value="no_documents" readonly checked> Прикреплены не все документы
-                        </label>`;
-                    }
-                    if (list[explanation]) {
-                        buf += `<div class="popup__textarea">
-                          <textarea placeholder="Пояснение" name="explanation" readonly>`+ list[exaplanation] + `</textarea>
-                        </div>`;
-                    }
-                    $('.popup__list').append(buf);
+
+                if (list["invalid_name"]) {
+                    buf += `<label class="popup__item"><input type="checkbox" readonly checked> Неверно указано ФИО</label>`;
                 }
+                if (list["invalid_contacts"]) {
+                    buf += `<label class="popup__item"><input type="checkbox" readonly checked> Неверно указаны контакты</label>`;
+                }
+                if (list["no_documents"]) {
+                    buf += `<label class="popup__item"><input type="checkbox" readonly checked> Не все документы прикреплены</label>`;
+                }
+                if (list["explanation"]) {
+                    buf += `<div class="popup__textarea"><textarea readonly>${list["explanation"]}</textarea></div>`;
+                }
+
+                $('.popup__list').append(buf);
             } else {
                 showAlert("Ошибка при запросе данных!", "error");
             }
-        }, error: function (xhr, status, error) {
+        },
+        error: function () {
             showAlert("Ошибка при запросе данных!", "error");
-            console.error('AJAX Error:', status, error);
         }
     })
 })
