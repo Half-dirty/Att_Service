@@ -79,7 +79,7 @@
                             </div>
                             <ul class="profile__user-menu">
                                 <li><a href="/admin/show/student/{{.ID}}" class="profile__user-link">Посмотреть аккаунт</a></li>
-                                <li><a href="/admin/delete/student/{{.ID}}" class="profile__user-link">Удалить аккаунт</a></li>
+                                <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>
                             </ul>                            
                         </div>
                         {{end}}

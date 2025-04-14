@@ -31,6 +31,8 @@ $(document).ready(function () {
     });
 });
 
+
+
 /* 
 LOGIN FORM
     get -
@@ -65,6 +67,8 @@ LOGIN FORM
 
     при success - true клиент сам перенаправит на соответствующую страницу
 */
+console.log("JS загружен");
+
 $('#login-button').on('click', function (e) {
     e.preventDefault();
     let email = $('#email').val();
@@ -118,7 +122,7 @@ $('#registration-button').on('click', function (e) {
         contentType: "application/json",
         data: JSON.stringify({ email: email }),
         success: function (res) {
-            return window.location.href = `/confirm`;
+            return window.location.href = `/`;
         },
         error: function (xhr, status, error) {
             console.error('AJAX Error:', status, error);
@@ -127,7 +131,8 @@ $('#registration-button').on('click', function (e) {
 })
 
 
-$('#confirm_button').on('click', function (e) {
+
+$('#confirm-button').on('click', function (e) {
     e.preventDefault();
     let email = $('#email').val();
     let password = $('#password').val();

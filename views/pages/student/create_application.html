@@ -58,17 +58,24 @@
         <main class="main">
             <nav class="menu">
                 <ul class="menu__list">
-                    <li class="menu__item">
-                        <a href="./main.html" class="menu__button">Личные данные</a>
+                    <li class="menu__item {{if eq .path "/user/profile"}}menu__item--active{{end}}">
+                        <a href="/user/profile" class="menu__button">Личные данные</a>
                     </li>
-                    <li class="menu__item">
-                        <a href="./documents.html" type="button" class="menu__button">Документы</a>
+                    <li class="menu__item {{if eq .path "/user/document"}}menu__item--active{{end}}">
+                        <a href="/user/document" type="button" class="menu__button">Документы</a>
                     </li>
-                    <li class="menu__item menu__item--active">
-                        <a href="./applications.html" class="menu__button popup__link" name="aplication_form">Мои
-                            заявки</a>
+                    {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
+                    <li class="menu__item menu__item--disabled">
+                        <a href="#" class="menu__button popup__link" name="aplication_form">Мои заявления</a>
                     </li>
-                    <li class="menu__item">
+                    {{end}}
+
+                    {{if eq .status "approved"}}
+                    <li class="menu__item {{if eq .path "/user/application"}}menu__item--active{{end}}">
+                        <a href="/user/application" class="menu__button">Мои заявления</a>
+                    </li>
+                    {{end}}
+                    <li class="menu__item {{if eq .path "/user/settings"}}menu__item--active{{end}}">
                         <a href="#" class="menu__button">Настройки</a>
                     </li>
                 </ul>

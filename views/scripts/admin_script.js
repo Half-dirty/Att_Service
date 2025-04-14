@@ -156,6 +156,33 @@ $('#search_all_input').on('input', function (e) {
     }
 });
 
+$(document).on('click', '.delete-student', function(e) {
+    e.preventDefault();
+
+    if (!confirm('Вы точно хотите удалить пользователя?')) {
+        return;
+    }
+
+    let id = $(this).data('id');
+
+    $.ajax({
+        type: "POST",
+        url: `/admin/delete/student/${id}`,
+        success: function (res) {
+            if (res.success) {
+                showAlert("Пользователь удалён!");
+                location.reload(); // обновить список
+            } else {
+                showAlert("Ошибка при удалении!", "error");
+            }
+        },
+        error: function () {
+            showAlert("Ошибка при удалении!", "error");
+        }
+    });
+});
+
+
 //--фильтр по ролям
 $('#users_role').on('change', function (e) {
     e.preventDefault();

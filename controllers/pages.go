@@ -176,7 +176,7 @@ func Verify(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка создания пользователя")
 	}
 
-	return services.Render(c, "", "documents.html", fiber.Map{"email": email})
+	return services.Render(c, "", "confirm.html", fiber.Map{"email": email})
 }
 
 // генерация JestID
