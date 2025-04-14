@@ -537,3 +537,11 @@
   background-color: #23a03c; /* зелёный */
   color: white;
 }
+
+.profile__avatar-mini {
+  height: 70px;
+  width: 70px;
+  border-radius: 5px;
+  object-fit: cover;
+  margin-right: 10px;
+}

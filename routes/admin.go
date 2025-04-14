@@ -23,4 +23,9 @@ func RegisterAdminRoutes(app *fiber.App) {
 	adminGroup.Post("/decline/:id", controllers.AdminDeclineStudent)
 	adminGroup.Post("/delete/student/:id", controllers.AdminDeleteStudent)
 	adminGroup.Post("/change_role", controllers.AdminChangeUserRole)
+	adminGroup.Get("/exam/list", controllers.GetPastExamsPage)
+	adminGroup.Get("/exam/planning", controllers.ExamPlanningPage)
+	adminGroup.Get("/exam/create", controllers.AdminCreateExamPage)
+	adminGroup.Post("/exam/create", controllers.AdminCreateExam)
+
 }

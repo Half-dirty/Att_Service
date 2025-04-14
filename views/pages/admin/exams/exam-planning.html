@@ -24,7 +24,6 @@
                 <label for="menu-toggle" class="header__menu-icon">
                     <span></span>
                 </label>
-                <img class="header__avatar" src="../../../pictures/Generic avatar.png" alt="Profile Avatar">
             </div>
         </header>
 
@@ -32,10 +31,10 @@
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item">
-                        <a href="./exam-list.html" class="menu__button">Прошедшие экзамены</a>
+                        <a href="/admin/exam/list" class="menu__button">Прошедшие экзамены</a>
                     </li>
                     <li class="menu__item menu__item--active">
-                        <a href="./exam-planning.html" type="button" class="menu__button">Запланированные экзамены</a>
+                        <a href="/admin/exam/planning" type="button" class="menu__button">Запланированные экзамены</a>
                     </li>
                     <li class="menu__item">
                         <a href="./exam-scheduled.html" class="menu__button">Назначенные экзамены</a>
@@ -46,35 +45,25 @@
             <section class="profile">
                 <div class="profile__header">
                     <div class="profile__exam-create">
-                        <a href="./create_exam.html" class="">Запланировать экзамен</a>
+                        <a href="/admin/exam/create" class="">Запланировать экзамен</a>
                     </div>
                 </div>
                 <div class="profile__exams">
                     <div class="profile__exam_list">
+                        {{range .PlannedExams}}
                         <div class="profile__exam">
                             <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
+                                <h2>Экзамен от {{.Date}}</h2>
                             </div>
                             <div class="profile__link">
-                                <a href="#" class="profile__exam-link">Посмотреть экзамен</a>
+                                <a href="/admin/exam/show/{{.ID}}" class="profile__exam-link">Посмотреть экзамен</a>
                             </div>
                         </div>
-                        <div class="profile__exam">
-                            <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
-                            </div>
-                            <div class="profile__link">
-                                <a href="#" class="profile__exam-link">Посмотреть экзамен</a>
-                            </div>
-                        </div>
-                        <div class="profile__exam">
-                            <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
-                            </div>
-                            <div class="profile__link">
-                                <a href="#" class="profile__exam-link">Посмотреть экзамен</a>
-                            </div>
-                        </div>
+                        {{end}}
+                    
+                        {{if eq (len .PlannedExams) 0}}
+                        <h2>Запланированных экзаменов пока нет</h2>
+                        {{end}}
                     </div>
                 </div>
             </section>

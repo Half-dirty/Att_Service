@@ -39,9 +39,10 @@ type User struct {
 
 	Snils string `gorm:"size:20;column:snils"`
 
-	Status        string `gorm:"size:100;default:'pending';column:status"`
-	Confirmed     bool   `gorm:"default:false;column:confirmed"` // новое поле
-	DeclineReason string `gorm:"type:text;column:rejection_reason"`
+	Status            string `gorm:"size:100;default:'pending';column:status"`
+	Confirmed         bool   `gorm:"default:false;column:confirmed"` // новое поле
+	DeclineReason     string `gorm:"type:text;column:rejection_reason"`
+	ApplicationStatus string `gorm:"type:text;column:application_status"`
 
 	RefreshToken string `gorm:"type:text;column:refresh_token"`
 }

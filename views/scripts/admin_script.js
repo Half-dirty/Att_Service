@@ -658,7 +658,7 @@ function submitExamForm() {
         success: function (res) {
             if (res.success) {
                 showAlert("Данные успешно сохранены!");
-                return window.location.href = "/admin/exam";
+                return window.location.href = "/admin/exam/planning";
             } else {
                 showAlert("Ошибка при сохранении данных!", "error");
             }

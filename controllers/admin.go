@@ -5,6 +5,7 @@ import (
 	"att_service/database"
 	"att_service/models"
 	"att_service/services"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -110,6 +111,150 @@ func AdminDeclineStudent(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
+func AdminCreateExamPage(c *fiber.Ctx) error {
+	userID, ok := c.Locals("userID").(uint)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
+	}
+
+	var admin models.User
+	if err := database.DB.First(&admin, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки администратора")
+	}
+	if admin.Role != "admin" {
+		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	}
+
+	// Загружаем экзаменаторов и студентов со статусом "approved"
+	var rawExaminers []models.User
+	var rawStudents []models.User
+	database.DB.Where("role = ? AND status = ?", "examiner", "approved").Find(&rawExaminers)
+	database.DB.Where("role = ? AND status = ?", "student", "approved").Find(&rawStudents)
+
+	// Подсчёт количества экзаменов со статусом scheduled и completed
+	var examCount int64
+	database.DB.Model(&models.Exam{}).Where("status IN ?", []string{"scheduled", "completed"}).Count(&examCount)
+
+	// Генерация предварительного кода экзамена
+	examCode := generateExamCode(examCount + 1)
+
+	// Вспомогательная функция для поиска аватарки
+	findAvatar := func(user models.User) string {
+		if user.StoragePath != "" {
+			if files, err := os.ReadDir(user.StoragePath); err == nil {
+				for _, f := range files {
+					if strings.HasPrefix(f.Name(), "avatar") {
+						return "/uploads/" + filepath.Base(user.StoragePath) + "/" + f.Name()
+					}
+				}
+			}
+		}
+		return "/pictures/Generic avatar.png"
+	}
+
+	type ExamUser struct {
+		ID     uint
+		Name   string
+		Avatar string
+	}
+
+	var examiners, students []ExamUser
+	for _, u := range rawExaminers {
+		examiners = append(examiners, ExamUser{
+			ID:     u.ID,
+			Name:   fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
+			Avatar: findAvatar(u),
+		})
+	}
+	for _, u := range rawStudents {
+		students = append(students, ExamUser{
+			ID:     u.ID,
+			Name:   fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
+			Avatar: findAvatar(u),
+		})
+	}
+
+	return services.Render(c, "admin", "exams/create_exam.html", fiber.Map{
+		"role":      admin.Role,
+		"status":    admin.Status,
+		"avatar":    findAvatar(admin),
+		"Examiners": examiners,
+		"Students":  students,
+		"ExamCode":  examCode,
+		"path":      c.Path(),
+	})
+}
+
+func generateExamCode(index int64) string {
+	return fmt.Sprintf("06-30-%d", index)
+}
+
+func AdminCreateExam(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	// Проверка прав доступа
+	var currentUser models.User
+	if err := database.DB.First(&currentUser, userID).Error; err != nil {
+		return c.Status(fiber.StatusUnauthorized).SendString("Пользователь не найден")
+	}
+	if currentUser.Role != "admin" {
+		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	}
+
+	// Получение данных из формы
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Ошибка получения данных формы")
+	}
+
+	examinersRaw := form.Value["examiners"]
+	studentsRaw := form.Value["students"]
+	dateStr := form.Value["date"][0]
+	commissionStartStr := form.Value["commission_start"][0]
+	commissionEndStr := form.Value["commission_end"][0]
+
+	var examinersID []uint
+	var studentsID []uint
+
+	_ = json.Unmarshal([]byte(examinersRaw[0]), &examinersID)
+	_ = json.Unmarshal([]byte(studentsRaw[0]), &studentsID)
+
+	date, _ := time.Parse("2006-01-02", dateStr)
+	commissionStart, _ := time.Parse("2006-01-02", commissionStartStr)
+	commissionEnd, _ := time.Parse("2006-01-02", commissionEndStr)
+
+	// Формируем экзамен
+	exam := models.Exam{
+		Date:            date,
+		CommissionStart: commissionStart,
+		CommissionEnd:   commissionEnd,
+		Status:          "planned", // изначально всегда planned
+	}
+
+	// Добавляем экзаменаторов
+	if len(examinersID) > 0 {
+		var examiners []models.User
+		database.DB.Where("id IN ?", examinersID).Find(&examiners)
+		exam.Examiners = examiners
+	}
+
+	// Добавляем студентов
+	if len(studentsID) > 0 {
+		var students []models.User
+		database.DB.Where("id IN ?", studentsID).Find(&students)
+		exam.Students = students
+	}
+
+	// Сохраняем экзамен
+	if err := database.DB.Create(&exam).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка создания экзамена")
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+	})
+}
+
 func AdminShowStudentProfile(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 
@@ -184,6 +329,66 @@ func AdminShowStudentProfile(c *fiber.Ctx) error {
 		"showButtons":    showButtons,
 		"decline_reason": student.DeclineReason,
 		"role":           student.Role,
+	})
+}
+
+func GetPastExamsPage(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	var currentUser models.User
+	if err := database.DB.First(&currentUser, userID).Error; err != nil || currentUser.Role != "admin" {
+		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	}
+
+	// Получаем экзамены со статусом "completed"
+	var exams []models.Exam
+	if err := database.DB.
+		Where("status = ?", "completed").
+		Order("date DESC").
+		Find(&exams).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка получения экзаменов")
+	}
+
+	type ExamItem struct {
+		Date string
+	}
+
+	var list []ExamItem
+	for _, e := range exams {
+		list = append(list, ExamItem{
+			Date: e.Date.Format("02.01.2006"),
+		})
+	}
+
+	return services.Render(c, "admin", "exams/exam-list.html", fiber.Map{
+		"Exams": list,
+	})
+}
+
+func ExamPlanningPage(c *fiber.Ctx) error {
+	var exams []models.Exam
+	if err := database.DB.
+		Where("status = ?", "planned").
+		Order("date ASC").
+		Find(&exams).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка при загрузке экзаменов")
+	}
+
+	type ExamItem struct {
+		ID   uint
+		Date string
+	}
+
+	var plannedExams []ExamItem
+	for _, exam := range exams {
+		plannedExams = append(plannedExams, ExamItem{
+			ID:   exam.ID,
+			Date: exam.Date.Format("02.01.2006"),
+		})
+	}
+
+	return services.Render(c, "admin", "exams/exam-planning.html", fiber.Map{
+		"PlannedExams": plannedExams,
 	})
 }
 

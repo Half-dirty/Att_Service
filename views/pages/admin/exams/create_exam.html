@@ -24,7 +24,6 @@
                 <label for="menu-toggle" class="header__menu-icon">
                     <span></span>
                 </label>
-                <img class="header__avatar" src="../../../pictures/Generic avatar.png" alt="Profile Avatar">
             </div>
         </header>
 
@@ -32,10 +31,10 @@
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item">
-                        <a href="./exam-list.html" class="menu__button">Прошедшие экзамены</a>
+                        <a href="/admin/exam/list" class="menu__button">Прошедшие экзамены</a>
                     </li>
-                    <li class="menu__item menu__item--active">
-                        <a href="./exam-planning.html" type="button" class="menu__button">Запланированные экзамены</a>
+                    <li class="menu__item">
+                        <a href="/admin/exam/planning" type="button" class="menu__button">Запланированные экзамены</a>
                     </li>
                     <li class="menu__item">
                         <a href="./exam-scheduled.html" class="menu__button">Назначенные экзамены</a>
@@ -53,8 +52,8 @@
                         </div>
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="exam_code">Предварительный код экзамена:</label>
-                            <input class="profile__params-input" type="number" readonly name="exam_code" id="exam_code"
-                                placeholder="__-__-__">
+                            <input class="profile__params-input" type="text" readonly name="exam_code" id="exam_code"
+                                value="{{.ExamCode}}">
                         </div>
                     </div>
                     <div class="profile__params-item">
@@ -74,83 +73,33 @@
                         <div class="profile__people-examiner">
                             <div class="profile__people-header">
                                 <label for="examiner-input">Выберите экзаменаторов:</label>
-                                <button class="profile__people-select_all" id="select-all_examiner">Выбрать
-                                    всех</button>
+                                <button class="profile__people-select_all" id="select-all_examiner">Выбрать всех</button>
                             </div>
-                            <div class="profile__examiner-list">
-                                <div class="profile__examiner-item" data-id="1">
-                                    <div class="profile__user-name">Иванов Иван Иванович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="2">
-                                    <div class="profile__user-name">Петров Пётр Петрович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="3">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="4">
-                                    <div class="profile__user-name">Иванов Иван Иванович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="5">
-                                    <div class="profile__user-name">Петров Пётр Петрович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__examiner-item" data-id="6">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
+                            {{range .Examiners}}
+                            <div class="profile__examiner-item" data-id="{{.ID}}">
+                                <img class="profile__avatar-mini" src="{{.Avatar}}" alt="Аватар">
+                                <div class="profile__user-name">{{.Name}}</div>
+                                <div class="profile__menu-icon"></div>
                             </div>
+                            {{end}}
                         </div>
+                        
                         <div class="profile__people-student">
                             <div class="profile__people-header">
                                 <label for="student-input">Выберите экзаменуемых:</label>
                                 <button class="profile__people-select_all" id="select-all_student">Выбрать всех</button>
                             </div>
-                            <div class="profile__student-list">
-                                <div class="profile__student-item" data-id="1">
-                                    <div class="profile__user-name">Иванов Иван Иванович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__student-item" data-id="2">
-                                    <div class="profile__user-name">Петров Пётр Петрович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
-                                <div class="profile__student-item" data-id="3">
-                                    <div class="profile__user-name">Сидоров Сидор Сидорович</div>
-                                    <div class="profile__menu-icon"></div>
-                                </div>
+                            {{range .Students}}
+                            <div class="profile__student-item" data-id="{{.ID}}">
+                                <img class="profile__avatar-mini" src="{{.Avatar}}" alt="Аватар">
+                                <div class="profile__user-name">{{.Name}}</div>
+                                <div class="profile__menu-icon"></div>
                             </div>
-                        </div>
+                            {{end}}
+                        </div>                        
                     </div>
                     <div class="profile__save">
-                        <button class="profile__save-button" id="create_exam">Запланировать</button>
+                        <button class="profile__save-button" id="create_exam">Сохранить</button>
                     </div>
                 </div>
             </section>

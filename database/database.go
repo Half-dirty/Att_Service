@@ -38,6 +38,7 @@ func Connect() error {
 		&models.Passport{},
 		&models.EducationDocument{},
 		&models.Application{},
+		&models.Exam{},
 	); err != nil {
 		return err
 	}
