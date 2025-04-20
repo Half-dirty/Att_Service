@@ -23,4 +23,6 @@ func RegisterUserRoutes(app *fiber.App) {
 	userGroup.Get("/application", controllers.GetUserApplicationPage)
 	userGroup.Get("/create-application", controllers.GetUserCreateApplicationPage)
 	userGroup.Post("/create-application", controllers.SaveUserApplication)
+	userGroup.Get("/exam/waiting/:exam_id", controllers.GetExamWaitingPage)
+	userGroup.Get("/exam/student/:exam_id/:student_id", controllers.GetExamStudentPage)
 }

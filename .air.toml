@@ -1,0 +1,45 @@
+# Корень проекта
+root = "."
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o ./att_service ."
+bin = "att_service"
+full_bin = "./att_service"
+
+# Какие расширения отслеживать
+include_ext = ["go", "tpl", "tmpl", "html", "css", "js"]
+
+# Исключения
+exclude_dir = [
+  "vendor",
+  "node_modules",
+  "tmp",
+  "frontend/dist",
+  ".idea",
+  "uploads",
+  "archive",
+  "views/#source",   # <- ты используешь отдельную папку с исходниками CSS/SCSS
+  "views/source",
+]
+
+# Не пересобирать, если файл не изменился
+exclude_unchanged = true
+
+# Перезапускать при ошибке компиляции
+stop_on_error = true
+
+[log]
+time = true
+main_only = false
+silent = false
+
+[color]
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[screen]
+clear_on_rebuild = true
+keep_scroll = true

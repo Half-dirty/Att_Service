@@ -24,6 +24,10 @@
                         Начать экзамен
                     </button>
                 </div>
+                <div id="online_list" class="profile__online-box">
+                    <h3>Подключились экзаменаторы:</h3>
+                    <ul id="online_examiners" class="profile__online-list"></ul>
+                </div>                
                 <div class="exam__list">
                     {{range .List}}
                     <div class="exam__item" data-student-id="{{.ID}}">

@@ -1039,6 +1039,46 @@ func GetUserApplicationPage(c *fiber.Ctx) error {
 	})
 }
 
+func GetExamWaitingPage(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	userRole := c.Locals("userRole").(string)
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(500).SendString("Ошибка загрузки пользователя")
+	}
+
+	examID := c.Params("exam_id") // предполагаем, что в URL будет /exam/waiting/:exam_id
+
+	return services.Render(c, "admin", "exam_procedure/exam_waiting-page.html", fiber.Map{
+		"role":    userRole,
+		"id":      user.ID,
+		"name":    fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp),
+		"exam_id": examID,
+	})
+}
+
+func GetExamStudentPage(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	userRole := c.Locals("userRole").(string)
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(500).SendString("Ошибка загрузки пользователя")
+	}
+
+	examID := c.Params("exam_id") // например, из URL /exam/student/:exam_id/:student_id
+	studentID := c.Params("student_id")
+
+	return services.Render(c, "admin", "exam_procedure/exam_person-page.html", fiber.Map{
+		"role":       userRole,
+		"id":         user.ID,
+		"name":       fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp),
+		"exam_id":    examID,
+		"student_id": studentID, // можно использовать в шаблоне или JS
+	})
+}
+
 // func GetUserApplicationPage(c *fiber.Ctx) error {
 // 	userID, ok := c.Locals("userID").(uint)
 // 	if !ok || userID == 0 {

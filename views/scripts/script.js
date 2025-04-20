@@ -99,6 +99,9 @@ $('#login-button').on('click', function (e) {
     })
 })
 
+localStorage.setItem("refresh_token", res.refresh_token);
+
+
 
 /* 
 REGISTRATION FORM
@@ -129,6 +132,21 @@ $('#registration-button').on('click', function (e) {
         }
     })
 })
+
+
+setInterval(() => {
+    const token = localStorage.getItem("refresh_token");
+    if (!token) return;
+
+    $.ajax({
+        type: "POST",
+        url: "/refresh",
+        contentType: "application/json",
+        data: JSON.stringify({ refresh_token: token }),
+        success: (res) => console.log("Access token обновлён")
+    });
+}, 10 * 60 * 1000);
+
 
 
 

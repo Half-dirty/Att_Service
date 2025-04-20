@@ -1,33 +1,46 @@
 $(document).ready(function () {
-    //ТЕСТОВЫЕ ДАННЫЕ, ИХ БЫТЬ НЕ ДОЛЖНО, ЭТИ ДАННЫЕ ДОЛЖНЫ ВЫТЯГИВАТЬСЯ ИЗ БД ИЛИ ТОКЕНА!!!
-    const role = "admin";  // можно вытаскивать из токена
-    const id = "admin1";
 
-    // Только если соединения нет или оно закрыто
     if (!window.socket || socket.readyState === WebSocket.CLOSED) {
-
-        window.socket = new WebSocket("ws://" + location.host + "/ws?role=" + role + "&id=" + id);
+        window.socket = new WebSocket(`ws://${location.host}/ws`);
 
         socket.onopen = () => {
             console.log("✅ WebSocket открыт");
+        
+            // Получаем данные из <body> (они рендерятся сервером)
+            const role = $("body").data("role");
+            const id = $("body").data("id");
+            const name = $("body").data("name");
+            const examId = $("body").data("exam-id");
+        
+            // Отправляем их сразу после подключения
+            socket.send(JSON.stringify({
+                type: "init_user",
+                data: {
+                    user_id: id,
+                    name: name,
+                    role: role,
+                    exam_id: examId
+                }
+            }));
         };
 
-        //Слушатель WebSocket сообщений у всех клиентов
         socket.onmessage = (event) => {
-            if (!event.data) {
-                console.warn("⚠️ Пустое сообщение от WebSocket");
-                return;
-            }
+            if (!event.data) return;
 
             let message;
             try {
                 message = JSON.parse(event.data);
             } catch (e) {
-                console.error("❌ Ошибка парсинга JSON:", e, "Данные:", event.data);
+                console.error("Ошибка JSON:", e);
                 return;
             }
 
             switch (message.type) {
+                case "connected_list":
+                    let html = "";
+                    message.data.forEach(name => html += `<li>${name}</li>`);
+                    $("#online_examiners").html(html);
+                    break;
                 case "start_exam":
                     start_exam(message);
                     break;
@@ -42,33 +55,15 @@ $(document).ready(function () {
                     break;
             }
         };
-        // Событие на случай ошибки подключения
+
         socket.onerror = (error) => {
             console.error("Ошибка WebSocket: ", error);
         };
 
-        // Закрытие соединения
         socket.onclose = (event) => {
-            console.log("WebSocket соединение закрыто", event);
+            console.log("WebSocket закрыт", event);
         };
     }
-
-    // $('.exam__start-button').on('click', function () {
-    //     const command = {
-    //         type: "start",
-    //         data: {
-    //             role: role,
-    //             id: id
-    //         }
-    //     };
-    //
-    //     if (window.socket && socket.readyState === WebSocket.OPEN) {
-    //         socket.send(JSON.stringify(command));
-    //         console.log("🚀 Отправлена команда старта экзамена");
-    //     } else {
-    //         console.warn("⚠️ Сокет не готов, команда не отправлена");
-    //     }
-    // });
 
     $('.exam__list').on('click', '.exam__item', function (e) {
         e.preventDefault();
@@ -77,24 +72,19 @@ $(document).ready(function () {
         let currentProgress = parseInt($('#current_progress-' + studentId).val());
         let totalProgress = parseInt($('#total_progress-' + studentId).val());
 
-        // Проверяем, если студент уже оценен
         if (currentProgress === totalProgress) {
             console.log("Этот студент уже оценен.");
-            return; // Не выбираем студента для оценки, если его прогресс завершен
+            return;
         }
 
         console.log("📤 ID выбранного студента:", studentId);
 
-        // Пример отправки команды на сервер
         const selectStudentCommand = {
             type: "select_student",
-            data: {
-                studentId: studentId
-            }
+            data: { studentId: studentId }
         };
         socket.send(JSON.stringify(selectStudentCommand));
     });
-
 
     $('#subscribe_button').on('click', function (e) {
         e.preventDefault();
@@ -106,40 +96,24 @@ $(document).ready(function () {
         let qualification = $('#qualification').val();
         let specialization = $('#specialization').val();
 
-        // console.log(studentId, protocol, score, recomendation, qualification, specialization, abstain);
-
         const subscribeCommand = {
             type: "subscribe_document",
             data: {
-                studentId: studentId,
-                protocol: protocol,
-                abstain: abstain,
-                score: score,
-                recomendation: recomendation,
-                qualification: qualification,
-                specialization: specialization
+                studentId, protocol, abstain, score, recomendation, qualification, specialization
             }
         };
 
         socket.send(JSON.stringify(subscribeCommand));
-    })
-})
+    });
+});
 
 function start_exam(message) {
     const data = message.data;
-    if (message.role === "examiner") {
-        // редирект у экзаменаторов
-        window.location.href = data.url;
-    }
-    if (message.role["role"] === "admin") {
-        window.location.href = data.url;
-    }
+    window.location.href = data.url;
 }
 
 function open_student(message) {
     const data = message.data;
-    const user = data.student[0];
-
     if (data && data.url) {
         window.location.href = data.url;
     } else {
@@ -147,10 +121,8 @@ function open_student(message) {
     }
 }
 
-// Функция для обработки редиректа
 function redirect(message) {
     const data = message.data;
-    // console.log(data);
     if (data && data.url) {
         window.location.href = data.url;
     } else {
@@ -163,36 +135,28 @@ function progress_update(message) {
     const studentId = data.studentId;
     const currentProgress = data.currentProgress;
 
-    // Обновляем значение прогресса для конкретного студента
     const progressElement = $('#current_progress-' + studentId.toString());
     if (progressElement) {
-        progressElement.value = currentProgress;
+        progressElement.val(currentProgress);
     }
 }
 
 function checkAllStudentsEvaluated() {
     let allEvaluated = true;
-    $('.exam__item').each(function() {
+    $('.exam__item').each(function () {
         let studentId = $(this).data("student-id");
         let currentProgress = parseInt($('#current_progress-' + studentId).val());
         let totalProgress = parseInt($('#total_progress-' + studentId).val());
 
         if (currentProgress !== totalProgress) {
-            allEvaluated = false; // Если хотя бы один студент не завершил оценку
-            return false; // Прерываем цикл
+            allEvaluated = false;
+            return false;
         }
     });
 
-    // Включаем или выключаем кнопку "начать обсуждение"
-    if (allEvaluated) {
-        $('.exam__discuss-button').prop('disabled', false);
-    } else {
-        $('.exam__discuss-button').prop('disabled', true);
-    }
+    $('.exam__discuss-button').prop('disabled', !allEvaluated);
 }
 
-// Проверяем каждый раз, когда изменяется прогресс
-$('.exam__list').on('input', 'input[type="number"]', function() {
+$('.exam__list').on('input', 'input[type="number"]', function () {
     checkAllStudentsEvaluated();
 });
-
