@@ -1,32 +1,33 @@
-# Корень проекта
+# Корень проекта — отсюда следим за изменениями
 root = "."
 tmp_dir = "tmp"
 
 [build]
-cmd = "go build -o ./att_service ."
-bin = "att_service"
-full_bin = "./att_service"
+# Сборка проекта в бинарник .exe
+cmd = "go build -o ./att_service.exe ."
+bin = "att_service.exe"
+full_bin = "./att_service.exe" # ← Запускаем его отсюда же
 
-# Какие расширения отслеживать
+# Расширения, за которыми следим
 include_ext = ["go", "tpl", "tmpl", "html", "css", "js"]
 
-# Исключения
+# Исключаемые папки (не следим за ними)
 exclude_dir = [
   "vendor",
   "node_modules",
   "tmp",
-  "frontend/dist",
   ".idea",
-  "uploads",
   "archive",
-  "views/#source",   # <- ты используешь отдельную папку с исходниками CSS/SCSS
-  "views/source",
+  "uploads",
+  "frontend/dist",
+  "views/#source",     # scss-исходники
+  "views/source"
 ]
 
-# Не пересобирать, если файл не изменился
+# Не пересобирать, если нет изменений
 exclude_unchanged = true
 
-# Перезапускать при ошибке компиляции
+# Прерывать запуск при ошибке компиляции
 stop_on_error = true
 
 [log]
