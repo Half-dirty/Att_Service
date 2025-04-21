@@ -47,8 +47,7 @@
                     <div class="profile__params-item">
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="exam_date">Дата проведения экзамена:</label>
-                            <input class="profile__params-input" type="date" name="exam_date" id="exam_date"
-                                placeholder="__.__.____">
+                            <input class="profile__params-input" type="date" name="exam_date" id="exam_date" value="{{.exam_date}}" placeholder="__.__.____">
                         </div>
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="exam_code">Предварительный код экзамена:</label>
@@ -60,13 +59,11 @@
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="commission_start">Начало действия
                                 комиссии:</label>
-                            <input class="profile__params-input" type="date" name="commission_start"
-                                id="commission_start" placeholder="__.__.____">
+                                <input class="profile__params-input" type="date" name="commission_start" id="commission_start" value="{{.commission_start}}" placeholder="__.__.____">
                         </div>
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="commission_end">Конец действия комиссии:</label>
-                            <input class="profile__params-input" type="date" name="commission_end" id="commission_end"
-                                placeholder="__.__.____">
+                            <input class="profile__params-input" type="date" name="commission_end" id="commission_end" value="{{.commission_end}}" placeholder="__.__.____">
                         </div>
                     </div>
                     <div class="profile__people">
@@ -77,7 +74,7 @@
                                     всех</button>
                             </div>
                             {{range .Examiners}}
-                            <div class="profile__examiner-item" data-id="{{.ID}}">
+                            <div class="profile__student-item" data-id="{{.ID}}" {{if .Selected}}data-selected="true"{{end}}>
                                 <img class="profile__avatar-mini" src="{{.Avatar}}" alt="Аватар">
                                 <div class="profile__user-name">{{.Name}}</div>
                                 <div class="profile__examiner-checked">
@@ -99,7 +96,7 @@
                                 <button class="profile__people-select_all" id="select-all_student">Выбрать всех</button>
                             </div>
                             {{range .Students}}
-                            <div class="profile__student-item" data-id="{{.ID}}">
+                            <div class="profile__student-item" data-id="{{.ID}}" {{if .Selected}}data-selected="true"{{end}}>
                                 <img class="profile__avatar-mini" src="{{.Avatar}}" alt="Аватар">
                                 <div class="profile__user-name">{{.Name}}</div>
                                 <div class="profile__menu-icon"></div>
@@ -108,12 +105,12 @@
                         </div>
                     </div>
                     <div class="profile__exam-buttons">
-                        <div class="profile__assign">
-                            <button class="profile__assign-button" id="assign_exam">Назначить</button>
+                        <div class="profile__link">
+                            <button class="profile__exam-link" id="assign_exam">Назначить</button>
                         </div>
                         <div class="profile__save">
                             <button class="profile__save-button" id="create_exam">Сохранить</button>
-                        </div>
+                        </div>                        
                     </div>
                 </div>
             </section>
@@ -127,16 +124,6 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
 <script src="../../../scripts/admin_script.js"></script>
-<script>
-    $(document).ready(function () {
-        const path = window.location.pathname;
-
-        // Пример: скрыть поле, если текущий URL — /admin/exam/create
-        if (path === "/admin/exam/create") {
-            $("#exam_code").closest(".profile__item-part").hide(); // Скрыть родителя поля
-        }
-    });
-</script>
 
 
 </html>

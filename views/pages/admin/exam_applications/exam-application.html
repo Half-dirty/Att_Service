@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../style/style.css">
-    <link rel="stylesheet" href="../../style/student/global.css">
-    <link rel="stylesheet" href="../../style/student/applications.css">
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/student/global.css">
+    <link rel="stylesheet" href="../../../style/student/applications.css">
     <title>Document</title>
 </head>
 
-<body>
+<body data-id="{{.AppID}}">
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
                 <a class="header__logo" href="/">
-                    <img class="header__logo-img" src="../../pictures/logo.svg" alt="Logo" />
+                    <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
                     </div>
@@ -53,7 +53,7 @@
                         </div>
                     </div>
                     <img class="header__profile-avatar"
-                        src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}"
+                        src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}"
                         alt="Profile Avatar">
                 </div>
             </div>
@@ -62,28 +62,8 @@
         <main class="main">
             <nav class="menu">
                 <ul class="menu__list">
-                    <li class="menu__item {{if eq .path " /user/profile"}}menu__item--active{{end}}">
-                        <a href="/user/profile" class="menu__button">Личные данные</a>
-                    </li>
-                    <li class="menu__item {{if eq .path " /user/document"}}menu__item--active{{end}}">
-                        <a href="/user/document" type="button" class="menu__button">Документы</a>
-                    </li>
-                    {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
-                    <li class="menu__item menu__item--disabled">
-                        <a href="#" class="menu__button popup__link" name="aplication_form">Мои заявления</a>
-                    </li>
-                    {{end}}
-
-                    {{if eq .status "approved"}}
-                    <li class="menu__item {{if eq .path " /user/application"}}menu__item--active{{end}}">
-                        <a href="/user/application" class="menu__button">Мои заявления</a>
-                    </li>
-                    {{end}}
-                    <li class="menu__item {{if eq .path " /user/exams"}}menu__item--active{{end}}">
-                        <a href="#" class="menu__button">Назначенные экзамены</a>
-                    </li>
-                    <li class="menu__item {{if eq .path " /user/settings"}}menu__item--active{{end}}">
-                        <a href="#" class="menu__button">Настройки</a>
+                    <li class="menu__item menu__item--active">
+                        <a href="/admin/exam/students" class="menu__button">Заявки на экзамен</a>
                     </li>
                 </ul>
             </nav>
@@ -277,18 +257,10 @@
                                 данных:</label>
                                 <input type="checkbox" name="consent" value="true" {{if .consent}}checked{{end}}>
                         </div>
-                        {{if eq .role "student"}}
-                        <div class="profile__save">
-                            <button type="submit" class="profile__save-button" id="send__application">Подать
-                                заявление</button>
-                        </div>
-                        {{end}}
-                        {{if eq .role "admin"}}
                         <div class="profile__agree">
-                            <button type="submit" class="profile__agree-button" id="agree_application">Подтвердить
-                                заявление</button>
+                            <button type="button" class="profile__agree-button" id="agree_application">Подтвердить заявление</button>
+                            <button type="button" class="profile__decline-button" id="decline_application">Отклонить заявление</button>
                         </div>
-                        {{end}}
                     </div>
                 </form>
             </section>
@@ -301,8 +273,23 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
-    <script src="../../scripts/student_script.js"></script>
-    <script src="../../scripts/admin_script.js"></script>
+    <script src="../../../scripts/student_script.js"></script>
+    <script src="../../../scripts/admin_script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          document.querySelectorAll("input, textarea, select").forEach(el => {
+            if (el.type === "file") {
+              el.disabled = true;
+            } else if (el.tagName === "SELECT") {
+              el.disabled = true;
+            } else if (el.type === "checkbox" || el.type === "radio") {
+              el.disabled = true;
+            } else {
+              el.readOnly = true;
+            }
+          });
+        });
+      </script>
 </body>
 
 </html>

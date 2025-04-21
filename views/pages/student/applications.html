@@ -14,7 +14,7 @@
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
-                <a class="header__logo" href="./index.html">
+                <a class="header__logo" href="/">
                     <img class="header__logo-img" src="../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
@@ -91,24 +91,24 @@
                         <a href="/user/create-application" class="profile__create-button">Создать</a>
                     </div>
                     <div class="profile__application-list">
-                        <div class="profile__application-item profile__application-item--active">
+                        {{range .applications}}
+                        <div class="profile__application-item {{if eq .Status "approved"}}profile__application-item--active{{end}}">
                             <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <h2 class="profile__application-text profile__application--aproved">Подтверждено</h2>
+                    
+                            {{if eq .Status "approved"}}
+                                <h2 class="profile__application-text profile__application--aproved">Подтверждено</h2>
+                            {{else if eq .Status "pending"}}
+                                <h2 class="profile__application-text profile__application--waiting">Ожидает подтверждения</h2>
+                            {{else if eq .Status "declined"}}
+                                <div class="profile__application-solution">
+                                    <h2 class="profile__application-text profile__application--decline">Отклонено</h2>
+                                    <a href="#" class="profile__application-button popup__decline-form" name="reason_decline">Причина</a>
+                                </div>
+                            {{end}}
                         </div>
-                        <div class="profile__application-item">
-                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <h2 class="profile__application-text profile__application--waiting">Ожидает подтверждения
-                            </h2>
-                        </div>
-                        <div class="profile__application-item">
-                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <div class="profile__application-solution">
-                                <h2 class="profile__application-text profile__application--decline">Отклонено</h2>
-                                <a href="#" class="profile__application-button popup__decline-form"
-                                    name="reason_decline">Причина</a>
-                            </div>
-                        </div>
+                        {{end}}
                     </div>
+                    
             </section>
         </main>
 

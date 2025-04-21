@@ -14,7 +14,7 @@
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
-                <a class="header__logo" href="./index.html">
+                <a class="header__logo" href="/">
                     <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
@@ -42,52 +42,20 @@
                     <div class="profile__application-item">
                         <div class="profile__application-info">
                             <div class="profile__application-avatar">
-                                <img src="../../../pictures/Group 1.svg" alt="Avatar"
+                                <img src="{{if .Avatar}}{{.Avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}" alt="Avatar"
                                     class="profile__application-avatar-img">
                             </div>
                             <div class="profile__application-name">
-                                <h2>Заявка от {{.User}}</h2>
+                                <h2>Заявка от {{.UserName}}</h2>
                             </div>
                         </div>
                         <div class="profile__application-buttons">
                             <div class="profile__link">
-                                <a href="#" class="profile__application-link">Посмотреть заявку</a>
+                                <a href="/admin/student/application/{{.AppID}}" class="profile__application-link">Посмотреть заявку</a>
                             </div>
                         </div>
                     </div>
-                    <div class="profile__application-item">
-                        <div class="profile__application-info">
-                            <div class="profile__application-avatar">
-                                <img src="../../../pictures/Group 1.svg" alt="Avatar"
-                                    class="profile__application-avatar-img">
-                            </div>
-                            <div class="profile__application-name">
-                                <h2>Заявка от {{.User}}</h2>
-                            </div>
-                        </div>
-                        <div class="profile__application-buttons">
-                            <div class="profile__link">
-                                <a href="#" class="profile__application-link">Посмотреть заявку</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="profile__application-item">
-                        <div class="profile__application-info">
-                            <div class="profile__application-avatar">
-                                <img src="../../../pictures/Group 1.svg" alt="Avatar"
-                                    class="profile__application-avatar-img">
-                            </div>
-                            <div class="profile__application-name">
-                                <h2>Заявка от {{.User}}</h2>
-                            </div>
-                        </div>
-                        <div class="profile__application-buttons">
-                            <div class="profile__link">
-                                <a href="#" class="profile__application-link">Посмотреть заявку</a>
-                            </div>
-                        </div>
-                    </div>
-                    {{end}}
+                    {{end}}                
                 </div>
             </section>
         </main>

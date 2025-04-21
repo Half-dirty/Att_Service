@@ -10,7 +10,7 @@
     <title>Document</title>
 </head>
 
-<body>
+<body class="exam-planning">
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
@@ -37,7 +37,7 @@
                         <a href="/admin/exam/planning" type="button" class="menu__button">Запланированные экзамены</a>
                     </li>
                     <li class="menu__item">
-                        <a href="./exam-scheduled.html" class="menu__button">Назначенные экзамены</a>
+                        <a href="/admin/exam/scheduled" class="menu__button">Назначенные экзамены</a>
                     </li>
                 </ul>
             </nav>
@@ -51,7 +51,7 @@
                 <div class="profile__exams">
                     <div class="profile__exam_list">
                         {{range .PlannedExams}}
-                        <div class="profile__exam">
+                        <div class="profile__exam" data-id="{{.ID}}">
                             <div class="profile__exam-name">
                                 <h2>Экзамен от {{.Date}}</h2>
                             </div>
@@ -60,7 +60,7 @@
                                     <button class="profile__exam-link">Назначить</button>
                                 </div>
                                 <div class="profile__link">
-                                    <a href="/admin/exam/show/{{.ID}}" class="profile__exam-link">Посмотреть экзамен</a>
+                                    <button class="profile__exam-link open-exam" data-id="{{.ID}}">Посмотреть экзамен</button>
                                 </div>
                             </div>
                         </div>

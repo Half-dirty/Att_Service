@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"archive/zip"
 	"att_service/database"
 	"att_service/models"
 	"att_service/services"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -848,103 +850,121 @@ func SaveMainPageData(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
+func generateApplicationNumber() string {
+	var count int64
+	database.DB.Model(&models.Application{}).Count(&count)
+	return fmt.Sprintf("06-10-%d", count+1)
+}
+
 func SaveUserApplication(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
-	if userID == 0 {
+	userID, ok := c.Locals("userID").(uint)
+	if !ok || userID == 0 {
 		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
 	}
 
-	var input struct {
-		NativeLanguage            string `json:"native_language"`
-		Citizenship               string `json:"citizenship"`
-		MaritalStatus             string `json:"marital_status"`
-		Organization              string `json:"organization"`
-		JobPosition               string `json:"job_position"`
-		RequestedCategory         string `json:"requested_category"`
-		BasisForAttestation       string `json:"basis_for_attestation"`
-		ExistingCategory          string `json:"existing_category"`
-		ExistingCategoryTerm      string `json:"existing_category_term"`
-		WorkExperience            string `json:"work_experience"`
-		CurrentPositionExperience string `json:"current_position_experience"`
-		AwardsInfo                string `json:"awards_info"`
-		TrainingInfo              string `json:"training_info"`
-		Memberships               string `json:"memberships"`
-		Consent                   bool   `json:"consent"`
+	// Чтение формы (multipart/form-data)
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Ошибка чтения формы"})
 	}
 
-	if err := c.BodyParser(&input); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Неверный формат данных"})
+	// Чтение текстовых полей
+	values := form.Value
+	get := func(key string) string {
+		if val, ok := values[key]; ok && len(val) > 0 {
+			return val[0]
+		}
+		return ""
 	}
 
-	if !input.Consent {
+	// Обработка согласия
+	consent := get("consent")
+	if consent != "true" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Необходимо согласие на обработку персональных данных"})
 	}
 
-	var app models.Application
-	err := database.DB.Where("user_id = ?", userID).First(&app).Error
-	if err != nil {
-		// если нет заявки — создаём
-		app = models.Application{UserID: userID}
+	// Сохраняем заявку
+	app := models.Application{
+		UserID:                    userID,
+		NativeLanguage:            get("native_language"),
+		Citizenship:               get("citizenship"),
+		MaritalStatus:             get("marital_status"),
+		Organization:              get("organization"),
+		JobPosition:               get("job_position"),
+		RequestedCategory:         get("requested_category"),
+		BasisForAttestation:       get("basis_for_attestation"),
+		ExistingCategory:          get("existing_category"),
+		ExistingCategoryTerm:      get("existing_category_term"),
+		WorkExperience:            get("work_experience"),
+		CurrentPositionExperience: get("current_position_experience"),
+		AwardsInfo:                get("awards_info"),
+		TrainingInfo:              get("training_info"),
+		Memberships:               get("memberships"),
+		Consent:                   true,
+		ApplicationNumber:         generateApplicationNumber(),
+		Status:                    "pending",
 	}
 
-	if input.NativeLanguage != "" {
-		app.NativeLanguage = input.NativeLanguage
+	if err := database.DB.Create(&app).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка сохранения заявки"})
 	}
-	if input.Citizenship != "" {
-		app.Citizenship = input.Citizenship
-	}
-	if input.MaritalStatus != "" {
-		app.MaritalStatus = input.MaritalStatus
-	}
-	if input.Organization != "" {
-		app.Organization = input.Organization
-	}
-	if input.JobPosition != "" {
-		app.JobPosition = input.JobPosition
-	}
-	if input.RequestedCategory != "" {
-		app.RequestedCategory = input.RequestedCategory
-	}
-	if input.BasisForAttestation != "" {
-		app.BasisForAttestation = input.BasisForAttestation
-	}
-	if input.ExistingCategory != "" {
-		app.ExistingCategory = input.ExistingCategory
-	}
-	if input.ExistingCategoryTerm != "" {
-		app.ExistingCategoryTerm = input.ExistingCategoryTerm
-	}
-	if input.WorkExperience != "" {
-		app.WorkExperience = input.WorkExperience
-	}
-	if input.CurrentPositionExperience != "" {
-		app.CurrentPositionExperience = input.CurrentPositionExperience
-	}
-	if input.AwardsInfo != "" {
-		app.AwardsInfo = input.AwardsInfo
-	}
-	if input.TrainingInfo != "" {
-		app.TrainingInfo = input.TrainingInfo
-	}
-	if input.Memberships != "" {
-		app.Memberships = input.Memberships
-	}
-	app.Consent = input.Consent
 
-	// сохраняем либо создаём
-	if err != nil {
-		if err := database.DB.Create(&app).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка создания данных"})
+	// Получаем пользователя и его папку
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка получения пользователя"})
+	}
+	if user.StoragePath == "" {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "У пользователя не указан путь к папке"})
+	}
+
+	// Документные типы и поля формы
+	docFields := map[string]string{
+		"diplom_img":      "диплом",
+		"diplom_jest_img": "диплом_жестовый",
+		"passport_all":    "паспорт",
+		"tk_book":         "трудовая",
+		"characteristic":  "характеристика",
+	}
+
+	// Удаление старых документов
+	for _, docType := range docFields {
+		database.DB.Where("user_id = ? AND document_type = ?", userID, docType).Delete(&models.UserDocument{})
+	}
+
+	// Сохранение новых файлов
+	for field, docType := range docFields {
+		files := form.File[field]
+		for i, file := range files {
+			ext := filepath.Ext(file.Filename)
+			unique := fmt.Sprintf("%s_%s_%d%s", user.JestID, sanitizeString(docType), i+1, ext)
+			savePath := filepath.Join(user.StoragePath, unique)
+			if err := c.SaveFile(file, savePath); err != nil {
+				log.Printf("Ошибка сохранения файла %s: %v", file.Filename, err)
+				continue
+			}
+			doc := models.UserDocument{
+				UserID:       userID,
+				DocumentName: file.Filename,
+				DocumentType: docType,
+				FilePath:     savePath,
+			}
+			database.DB.Create(&doc)
 		}
-	} else {
-		if err := database.DB.Save(&app).Error; err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка сохранения данных"})
-		}
+	}
+	var passport models.Passport
+	database.DB.Where("user_id = ?", user.ID).First(&passport)
+
+	var edu models.EducationDocument
+	database.DB.Where("user_id = ?", user.ID).First(&edu)
+
+	// В конце SaveUserApplication:
+	if err := GenerateApplicationODT(user, app, passport, edu); err != nil {
+		log.Println("Ошибка генерации ODT:", err)
 	}
 
 	return c.JSON(fiber.Map{"success": true})
 }
-
 func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 	userID, ok := c.Locals("userID").(uint)
 	if !ok || userID == 0 {
@@ -956,6 +976,7 @@ func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
 	}
 
+	// --- Аватарка ---
 	avatarPath := ""
 	if user.StoragePath != "" {
 		if files, err := os.ReadDir(user.StoragePath); err == nil {
@@ -968,27 +989,55 @@ func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 		}
 	}
 
+	// --- Последняя заявка ---
+	var application models.Application
+	database.DB.Where("user_id = ?", userID).Order("created_at DESC").First(&application)
+
+	// --- Документы ---
+	diplomImages := findImagesInDir(user.StoragePath, "диплом")
+	diplomJestImages := findImagesInDir(user.StoragePath, "диплом_жестовый")
+	passportImages := findImagesInDir(user.StoragePath, "паспорт")
+	tkBookImages := findImagesInDir(user.StoragePath, "трудовая")
+	characteristicImages := findImagesInDir(user.StoragePath, "характеристика")
+
 	return services.Render(c, "student", "create_application.html", fiber.Map{
 		"status":                      user.Status,
 		"role":                        user.Role,
 		"avatar":                      avatarPath,
 		"path":                        c.Path(),
-		"native_language":             "",
-		"citizenship":                 "",
-		"marital_status":              "",
-		"organization":                "",
-		"job_position":                "",
-		"requested_category":          "",
-		"basis_for_attestation":       "",
-		"existing_category":           "",
-		"existing_category_term":      "",
-		"work_experience":             "",
-		"current_position_experience": "",
-		"awards_info":                 "",
-		"training_info":               "",
-		"memberships":                 "",
-		"consent":                     false,
+		"native_language":             application.NativeLanguage,
+		"citizenship":                 application.Citizenship,
+		"marital_status":              application.MaritalStatus,
+		"organization":                application.Organization,
+		"job_position":                application.JobPosition,
+		"requested_category":          application.RequestedCategory,
+		"basis_for_attestation":       application.BasisForAttestation,
+		"existing_category":           application.ExistingCategory,
+		"existing_category_term":      application.ExistingCategoryTerm,
+		"work_experience":             application.WorkExperience,
+		"current_position_experience": application.CurrentPositionExperience,
+		"awards_info":                 application.AwardsInfo,
+		"training_info":               application.TrainingInfo,
+		"memberships":                 application.Memberships,
+		"consent":                     application.Consent,
+		"diplom_images":               diplomImages,
+		"diplom_jest_images":          diplomJestImages,
+		"passport_images":             passportImages,
+		"tk_book_images":              tkBookImages,
+		"characteristic_images":       characteristicImages,
 	})
+}
+
+func getDocumentPaths(userID uint, docType string) []string {
+	var docs []models.UserDocument
+	database.DB.Where("user_id = ? AND document_type = ?", userID, docType).Find(&docs)
+	paths := []string{}
+	for _, doc := range docs {
+		if strings.HasPrefix(doc.FilePath, "./uploads/") {
+			paths = append(paths, "/uploads/"+filepath.Base(filepath.Dir(doc.FilePath))+"/"+filepath.Base(doc.FilePath))
+		}
+	}
+	return paths
 }
 
 func GetUserApplicationPage(c *fiber.Ctx) error {
@@ -1025,7 +1074,7 @@ func GetUserApplicationPage(c *fiber.Ctx) error {
 	for _, app := range applications {
 		list = append(list, ApplicationItem{
 			Number: app.ApplicationNumber,
-			Status: strings.ToLower(app.ApplicationType), // можно поменять на app.Status если в модели есть статус
+			Status: strings.ToLower(app.Status), // <-- теперь корректно берёт статус
 		})
 	}
 
@@ -1077,6 +1126,202 @@ func GetExamStudentPage(c *fiber.Ctx) error {
 		"exam_id":    examID,
 		"student_id": studentID, // можно использовать в шаблоне или JS
 	})
+}
+
+func GenerateApplicationODT(user models.User, app models.Application, passport models.Passport, edu models.EducationDocument) error {
+	if user.StoragePath == "" {
+		return fmt.Errorf("не указан путь хранения пользователя")
+	}
+
+	templatePath := "./templates_odt/Application_FIXED.ott"
+	workDir := filepath.Join(user.StoragePath, "odt_temp")
+	outputODT := filepath.Join(user.StoragePath, fmt.Sprintf("%s_заявление.odt", user.JestID))
+
+	os.RemoveAll(workDir)
+	os.MkdirAll(workDir, os.ModePerm)
+
+	// 1. Распаковать шаблон
+	if err := unzip(templatePath, workDir); err != nil {
+		return fmt.Errorf("ошибка распаковки шаблона: %v", err)
+	}
+
+	// 2. Копирование изображений
+	imageMap := map[string]string{
+		"passport_1":        "паспорт_разворот",
+		"passport_2":        "паспорт_прописка",
+		"diplom_image":      "диплом",
+		"diplom_jest_image": "диплом_жестовый",
+		"book":              "трудовая",
+		"characteristics":   "характеристика",
+	}
+	picturesDir := filepath.Join(workDir, "Pictures")
+	os.MkdirAll(picturesDir, os.ModePerm)
+	replacedImages := map[string]string{}
+
+	for placeholder, prefix := range imageMap {
+		matches, _ := filepath.Glob(filepath.Join(user.StoragePath, prefix+"*"))
+		if len(matches) > 0 {
+			ext := filepath.Ext(matches[0])
+			destName := placeholder + ext
+			destPath := filepath.Join(picturesDir, destName)
+			if err := copyFile(matches[0], destPath); err == nil {
+				replacedImages[placeholder] = destName
+			}
+		}
+	}
+
+	// 3. Заменить текст и изображения в content.xml
+	contentPath := filepath.Join(workDir, "content.xml")
+	contentBytes, err := os.ReadFile(contentPath)
+	if err != nil {
+		return fmt.Errorf("не удалось прочитать content.xml: %v", err)
+	}
+	updatedContent := string(contentBytes)
+
+	// 3.1. Заменим пути к изображениям
+	for key, fname := range replacedImages {
+		updatedContent = strings.ReplaceAll(updatedContent, "Pictures/{{"+key+"}}", "Pictures/"+fname)
+	}
+
+	// 3.2. Подстановка текстов
+	textMap := map[string]string{
+		"{{surname}}":                     user.SurnameInIp,
+		"{{first_name}}":                  user.NameInIp,
+		"{{patronymic}}":                  user.LastnameInIp,
+		"{{birth_date}}":                  passport.BirthDate.Format("02.01.2006"),
+		"{{birth_place}}":                 passport.BirthPlace,
+		"{{gender}}":                      map[string]string{"male": "мужской", "female": "женский"}[user.Sex],
+		"{{native_language}}":             app.NativeLanguage,
+		"{{citizenship}}":                 app.Citizenship,
+		"{{marital_status}}":              app.MaritalStatus,
+		"{{organization}}":                app.Organization,
+		"{{job_position}}":                app.JobPosition,
+		"{{requested_category}}":          app.RequestedCategory,
+		"{{basis_for_attestation}}":       app.BasisForAttestation,
+		"{{existing_category}}":           app.ExistingCategory,
+		"{{existing_category_term}}":      app.ExistingCategoryTerm,
+		"{{work_experience}}":             app.WorkExperience,
+		"{{current_position_experience}}": app.CurrentPositionExperience,
+		"{{awards_info}}":                 app.AwardsInfo,
+		"{{training_info}}":               app.TrainingInfo,
+		"{{memberships}}":                 app.Memberships,
+		"{{email}}":                       user.Email,
+		"{{mobile_phone}}":                user.MobilePhone,
+		"{{work_phone}}":                  user.WorkPhone,
+		"{{home_phone}}":                  "", // нет отдельного поля
+		"{{home_address}}":                passport.RegistrationAddress,
+		"{{passport_series}}":             passport.PassportSeries,
+		"{{passport_number}}":             passport.PassportNumber,
+		"{{passport_issued_by}}":          passport.PassportIssuedBy,
+		"{{passport_issue_date}}":         passport.PassportIssueDate.Format("02.01.2006"),
+		"{{passport_division_code}}":      passport.PassportDivisionCode,
+		"{{education}}":                   edu.DiplomaRegNumber,
+		"{{education_document_scan}}":     "см. вложение",
+		"{{application_number}}":          fmt.Sprintf("№%d", app.ID),
+		"{{application_type}}":            "Первичная", // или другой параметр при необходимости
+		"{{declared_specialization}}":     "",          // заполни при наличии поля
+		"{{date}}":                        time.Now().Format("02.01.2006"),
+		"{{consent}}":                     "Да",
+	}
+
+	for key, value := range textMap {
+		updatedContent = strings.ReplaceAll(updatedContent, key, value)
+	}
+
+	if err := os.WriteFile(contentPath, []byte(updatedContent), 0644); err != nil {
+		return fmt.Errorf("ошибка записи content.xml: %v", err)
+	}
+
+	// 4. Собираем обратно в odt
+	if err := zipFolder(workDir, outputODT); err != nil {
+		return fmt.Errorf("ошибка сборки odt: %v", err)
+	}
+
+	os.RemoveAll(workDir)
+	return nil
+}
+
+func unzip(src, dest string) error {
+	r, err := zip.OpenReader(src)
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+	for _, f := range r.File {
+		fp := filepath.Join(dest, f.Name)
+		if f.FileInfo().IsDir() {
+			os.MkdirAll(fp, os.ModePerm)
+			continue
+		}
+		os.MkdirAll(filepath.Dir(fp), os.ModePerm)
+		dst, err := os.Create(fp)
+		if err != nil {
+			return err
+		}
+		defer dst.Close()
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+		defer rc.Close()
+		_, err = io.Copy(dst, rc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func zipFolder(sourceDir, zipPath string) error {
+	zipFile, err := os.Create(zipPath)
+	if err != nil {
+		return err
+	}
+	defer zipFile.Close()
+	w := zip.NewWriter(zipFile)
+	defer w.Close()
+	return filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == sourceDir {
+			return nil
+		}
+		relPath, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			_, err := w.Create(relPath + "/")
+			return err
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		fw, err := w.Create(relPath)
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(fw, f)
+		return err
+	})
+}
+
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	_, err = io.Copy(out, in)
+	return err
 }
 
 // func GetUserApplicationPage(c *fiber.Ctx) error {

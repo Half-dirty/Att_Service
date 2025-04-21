@@ -164,52 +164,52 @@ $(document).on('click', '.delete-student', function (e) {
     }
 
     $.ajax({
-		type: "POST",
-		url: "/admin/api/student",
-		contentType: "application/json",
-		data: JSON.stringify({ id: id }),
-		success: function () {
-			// Затем удаляем
-			$.ajax({
-				type: "POST",
-				url: "/admin/student/delete",
-				contentType: "application/json",
-				data: JSON.stringify({}),
-				success: function () {
-					location.reload();
-				},
-				error: function () {
-					showAlert("Ошибка при удалении пользователя", "error");
-				}
-			});
-		},
-		error: function () {
-			showAlert("Ошибка при установке пользователя", "error");
-		}
-	});
+        type: "POST",
+        url: "/admin/api/student",
+        contentType: "application/json",
+        data: JSON.stringify({ id: id }),
+        success: function () {
+            // Затем удаляем
+            $.ajax({
+                type: "POST",
+                url: "/admin/student/delete",
+                contentType: "application/json",
+                data: JSON.stringify({}),
+                success: function () {
+                    location.reload();
+                },
+                error: function () {
+                    showAlert("Ошибка при удалении пользователя", "error");
+                }
+            });
+        },
+        error: function () {
+            showAlert("Ошибка при установке пользователя", "error");
+        }
+    });
 });
 
 
 $(document).on('click', '.open-student-profile', function (e) {
     e.preventDefault();
-  
+
     const id = $(this).data('id');
     const source = $(this).data('source') || "";
-  
+
     $.ajax({
-      type: "POST",
-      url: "/admin/api/student",
-      contentType: "application/json",
-      data: JSON.stringify({ id: id, source: source }),
-      success: function () {
-        window.location.href = "/admin/student/profile"; 
-      },
-      error: function () {
-        showAlert("Ошибка при открытии профиля", "error");
-      }
+        type: "POST",
+        url: "/admin/api/student",
+        contentType: "application/json",
+        data: JSON.stringify({ id: id, source: source }),
+        success: function () {
+            window.location.href = "/admin/student/profile";
+        },
+        error: function () {
+            showAlert("Ошибка при открытии профиля", "error");
+        }
     });
-  });
-  
+});
+
 
 
 //--фильтр по ролям
@@ -228,33 +228,26 @@ $('#users_role').on('change', function (e) {
             if (res.success) {
                 for (let i = 0; i < res['users'].length; i++) {
                     let user = res['users'][i];
-                    buf += '<div class="profile__user" id="' + user['id'] + '">' +
-                        '<div class="profile__user-name">' +
-                        '    <h2>' +
-                        '        <img src="' + user['avatar'] + '">' +
-                        '        ' + user['surname'] + ' ' + user['name'] + ' ' + user['lastname'] + '' +
-                        '        <div class="header__role">';
-                    switch (user['role']) {
-                        case "admin":
-                            buf += ' <h2 class="header__role-text header__role-text--admin">Администратор</h2>';
-                            break;
-                        case "student":
-                            buf += '<h2 class="header__role-text header__role-text--student">Аттестуемый</h2>';
-                            break;
-                        case "examiner":
-                            buf += '<h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>';
-                            break;
-                    }
-                    buf += '</div>' +
-                        '   </h2>' +
-                        '</div>' +
-                        '<div class="profile__user-selector">' +
-                        '    <ul class="profile__user-menu">' +
-                        '        <li><button class="profile__user-link open-student-profile" data-id="{{.ID}}">Посмотреть аккаунт</button></li>' +
-                        '        <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>' +
-                        '    </ul>' +
-                        '</div>' +
-                        '</div>'
+                    buf += `<div class="profile__user" id="${user.id}">
+                            <div class="profile__user-name">
+                                <h2>
+                                    <img src="${user.avatar}">
+                                    ${user.surname} ${user.name} ${user.lastname}
+                                    <div class="header__role">
+                                        ${user.role === 'admin' ? '<h2 class="header__role-text header__role-text--admin">Администратор</h2>' :
+                            user.role === 'student' ? '<h2 class="header__role-text header__role-text--student">Аттестуемый</h2>' :
+                                user.role === 'examiner' ? '<h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>' : ''
+                        }
+                                    </div>
+                                </h2>
+                            </div>
+                            <div class="profile__user-selector">
+                                <ul class="profile__user-menu">
+                                    <li><button class="profile__user-link open-student-profile" data-id="${user.id}">Посмотреть аккаунт</button></li>
+                                    <li><button class="profile__user-link delete-student" data-id="${user.id}">Удалить аккаунт</button></li>
+                                </ul>
+                            </div>
+                        </div>`;
                 }
             } else {
                 buf += '<div class="profile__user">' +
@@ -329,35 +322,40 @@ $('#search_application_input').on('input', function (e) {
 
 // Функция для генерации HTML для каждого пользователя
 function generateUserHTML(user) {
-    let buf = '<div class="profile__user" id="' + user['id'] + '">' +
-        '<div class="profile__user-name">' +
-        '    <h2>' +
-        '        <img src="' + user['avatar'] + '">' +
-        '        ' + user['surname'] + ' ' + user['name'] + ' ' + user['lastname'] + '' +
-        '        <div class="header__role">';
-    switch (user['role']) {
+    let roleText = '';
+    switch (user.role) {
         case "admin":
-            buf += ' <h2 class="header__role-text header__role-text--admin">Администратор</h2>';
+            roleText = '<h2 class="header__role-text header__role-text--admin">Администратор</h2>';
             break;
         case "student":
-            buf += '<h2 class="header__role-text header__role-text--student">Аттестуемый</h2>';
+            roleText = '<h2 class="header__role-text header__role-text--student">Аттестуемый</h2>';
             break;
         case "examiner":
-            buf += '<h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>';
+            roleText = '<h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>';
             break;
     }
-    buf += '</div>' +
-        '   </h2>' +
-        '</div>' +
-        '<div class="profile__user-selector">' +
-        '    <ul class="profile__user-menu">' +
-        '        <li><button class="profile__user-link open-student-profile" data-id="{{.ID}}" data-source="application">Посмотреть аккаунт</button></li>' +
-        '        <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>' +
-        '    </ul>' +
-        '</div>' +
-        '</div>';
-    return buf;
+
+    return `
+        <div class="profile__user" id="${user.id}">
+            <div class="profile__user-name">
+                <h2>
+                    <img src="${user.avatar}">
+                    ${user.surname} ${user.name} ${user.lastname}
+                    <div class="header__role">
+                        ${roleText}
+                    </div>
+                </h2>
+            </div>
+            <div class="profile__user-selector">
+                <ul class="profile__user-menu">
+                    <li><button class="profile__user-link open-student-profile" data-id="${user.id} data-source="application">Посмотреть аккаунт</button></li>
+                    <li><button class="profile__user-link delete-student" data-id="${user.id}">Удалить аккаунт</button></li>
+                </ul>
+            </div>
+        </div>
+    `;
 }
+
 
 // Функция для вывода, если пользователей не найдено
 function generateUserNotFound() {
@@ -380,6 +378,7 @@ $('#users_role_application').on('change', function (e) {
     let role = $('#users_role_application').val();
     console.log(role);
     let content = $('.profile__user_list').empty();
+
     $.ajax({
         type: "POST",
         url: "/admin/select/application",
@@ -387,53 +386,67 @@ $('#users_role_application').on('change', function (e) {
         data: JSON.stringify({ role: role }),
         success: function (res) {
             let buf = "";
+
             if (res.success) {
-                for (let i = 0; i < res['users'].length; i++) {
-                    let user = res['users'][i];
-                    buf += '<div class="profile__user" id="' + user['id'] + '">' +
-                        '<div class="profile__user-name">' +
-                        '    <h2>' +
-                        '        <img src="' + user['avatar'] + '">' +
-                        '        ' + user['surname'] + ' ' + user['name'] + ' ' + user['lastname'] + '' +
-                        '        <div class="header__role">';
-                    switch (user['role']) {
+                for (let i = 0; i < res.users.length; i++) {
+                    let user = res.users[i];
+
+                    let roleText = '';
+                    switch (user.role) {
                         case "admin":
-                            buf += ' <h2 class="header__role-text header__role-text--admin">Администратор</h2>';
+                            roleText = '<h2 class="header__role-text header__role-text--admin">Администратор</h2>';
                             break;
                         case "student":
-                            buf += '<h2 class="header__role-text header__role-text--student">Аттестуемый</h2>';
+                            roleText = '<h2 class="header__role-text header__role-text--student">Аттестуемый</h2>';
                             break;
                         case "examiner":
-                            buf += '<h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>';
+                            roleText = '<h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>';
                             break;
                     }
-                    buf += '</div>' +
-                        '   </h2>' +
-                        '</div>' +
-                        '<div class="profile__user-selector">' +
-                        '    <ul class="profile__user-menu">' +
-                        '        <li><button class="profile__user-link open-student-profile" data-id="{{.ID}}" data-source="application">Посмотреть аккаунт</button></li>' +
-                        '        <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>' +
-                        '    </ul>' +
-                        '</div>' +
-                        '</div>'
+
+                    buf += `
+                        <div class="profile__user" id="${user.id}">
+                            <div class="profile__user-name">
+                                <h2>
+                                    <img src="${user.avatar}">
+                                    ${user.surname} ${user.name} ${user.lastname}
+                                    <div class="header__role">
+                                        ${roleText}
+                                    </div>
+                                </h2>
+                            </div>
+                            <div class="profile__user-selector">
+                                <ul class="profile__user-menu">
+                                    <li><button class="profile__user-link open-student-profile" data-id="${user.id}" data-source="application">Посмотреть аккаунт</button></li>
+                                    <li><button class="profile__user-link delete-student" data-id="${user.id}">Удалить аккаунт</button></li>
+                                </ul>
+                            </div>
+                        </div>
+                    `;
                 }
             } else {
-                buf += '<div class="profile__user">' +
-                    '    <div class="profile__user-name">' +
-                    '       <h2>пользователи не найдены</h2>' +
-                    '    </div>' +
-                    '   <div class="profile__user-selector">' +
-                    '        <div class="profile__menu-icon">' +
-                    '            <span></span>' +
-                    '        </div>' +
-                    '       </div>' +
-                    '</div>'
+                buf += `
+                    <div class="profile__user">
+                        <div class="profile__user-name">
+                            <h2>Пользователи не найдены</h2>
+                        </div>
+                        <div class="profile__user-selector">
+                            <div class="profile__menu-icon">
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
+
             content.append(buf);
+        },
+        error: function () {
+            showAlert("Ошибка при фильтрации по роли", "error");
         }
-    })
-})
+    });
+});
+
 
 
 //--USER SHOW PAGES-----------------------------------
@@ -444,15 +457,20 @@ $('#role-select').on('change', function (e) {
 
     let role = $(this).val();
 
-    // Обновляем класс для визуального оформления
-    $(this)
-        .removeClass('header__role-select--student header__role-select--examiner')
-        .addClass(`header__role-select--${role}`);
+    // удаляем старые классы цвета
+    $(this).removeClass('header__role-select--student header__role-select--examiner');
 
-    // Безопасный AJAX-запрос без использования ID в URL
+    // добавляем новый класс цвета
+    if (role === "examiner") {
+        $(this).addClass('header__role-select--examiner');
+    } else {
+        $(this).addClass('header__role-select--student');
+    }
+
+    // Просто отправляем роль
     $.ajax({
         type: "POST",
-        url: "/admin/change_role", // безопасный путь
+        url: "/admin/change_role", // Без id в query!
         contentType: "application/json",
         data: JSON.stringify({ role: role }),
         success: function (res) {
@@ -472,24 +490,101 @@ $('#role-select').on('change', function (e) {
 
 
 
+
 //--подтвердить профиль
 $('#decision-accept').on('click', function (e) {
-	e.preventDefault();
-	$.ajax({
-		type: "POST",
-		url: "/admin/student/confirm",
-		contentType: "application/json",
-		data: JSON.stringify({ confirm: true }),
-		success: function (res) {
-			if (res.success) {
-				window.location.href = "/admin/user/application";
-			} else {
-				showAlert("Не удалось подтвердить пользователя", "error");
-			}
-		}
-	});
+    e.preventDefault();
+    $.ajax({
+        type: "POST",
+        url: "/admin/student/confirm",
+        contentType: "application/json",
+        data: JSON.stringify({ confirm: true }),
+        success: function (res) {
+            if (res.success) {
+                window.location.href = "/admin/user/application";
+            } else {
+                showAlert("Не удалось подтвердить пользователя", "error");
+            }
+        }
+    });
 });
 
+// Глобальная функция setupList теперь доступна в любом месте
+function setupList({ selectorIcon, selectorButton, labelOn, labelOff, roleSelectorClass }) {
+    const icons = document.querySelectorAll(selectorIcon);
+    const button = document.querySelector(selectorButton);
+    if (!button) return;
+
+    function checkAllSelected() {
+        return Array.from(icons).every(icon => icon.classList.contains('active'));
+    }
+
+    function updateButtonLabel() {
+        const allSelected = checkAllSelected();
+        button.textContent = allSelected ? labelOff : labelOn;
+    }
+
+    icons.forEach(icon => {
+        icon.addEventListener('click', () => {
+            icon.classList.toggle('active');
+            const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
+            if (icon.classList.contains('active')) {
+                roleSelector?.style.setProperty('display', 'block');
+            } else {
+                roleSelector?.style.setProperty('display', 'none');
+            }
+            updateButtonLabel();
+        });
+    });
+
+    button.addEventListener('click', function (e) {
+        e.preventDefault();
+        const allSelected = checkAllSelected();
+        const shouldActivate = !allSelected;
+
+        icons.forEach(icon => {
+            icon.classList.toggle('active', shouldActivate);
+            const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
+            if (shouldActivate) {
+                roleSelector?.style.setProperty('display', 'block');
+            } else {
+                roleSelector?.style.setProperty('display', 'none');
+            }
+        });
+
+        updateButtonLabel();
+    });
+}
+
+$('.profile__examiner-item[data-selected="true"]').each(function () {
+    const icon = $(this).find('.profile__menu-icon');
+    const selector = $(this).find('.profile__examiner-role');
+    icon.addClass('active');
+    selector.show(); // отображаем селект роли
+});
+
+$('.profile__student-item[data-selected="true"]').each(function () {
+    const icon = $(this).find('.profile__menu-icon');
+    icon.addClass('active');
+});
+
+
+// Вызов функций setupList после определения
+setupList({
+    selectorIcon: '.profile__examiner-item .profile__menu-icon',
+    selectorButton: '#select-all_examiner',
+    labelOn: 'Выбрать всех',
+    labelOff: 'Убрать всех',
+    roleSelectorClass: '.profile__examiner-role'
+});
+
+setupList({
+    selectorIcon: '.profile__student-item .profile__menu-icon',
+    selectorButton: '#select-all_student',
+    labelOn: 'Выбрать всех',
+    labelOff: 'Убрать всех',
+    roleSelectorClass: ''
+});
 
 //--отклонить профиль (открытие модалки)
 $('.profile__decision-decline').on('click', function (e) {
@@ -509,39 +604,61 @@ $(document).on('change keyup', '#decline_form input[type="checkbox"], #decline_f
     }
 });
 
+$(document).on("click", ".profile__exam-link--cancel", function (e) {
+    e.preventDefault();
 
+    const examId = $(this).closest(".profile__exam").data("id");
+
+    if (!examId) {
+        alert("ID экзамена не найден");
+        return;
+    }
+
+    $.ajax({
+        url: "/admin/api/exam/cancel",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ exam_id: examId }),
+        success: function (res) {
+            location.reload();
+        },
+        error: function (xhr) {
+            alert("Ошибка отмены экзамена: " + xhr.responseText);
+        },
+    });
+});
+
+
+//--отправка формы отказа
 //--отправка формы отказа
 $(document).on('submit', '#decline-forma', function (e) {
     e.preventDefault();
 
     if ($('.popup__send').hasClass('popup__send--disabled')) {
-        return; // Не отправляем запрос, если кнопка не активна
+        return;
     }
-    ;
-    const formData = {};
+
+    const reasons = [];
 
     // Собираем все выбранные чекбоксы
     $('input[name="reason"]:checked').each(function () {
-        if (!formData['reasons']) formData['reasons'] = [];
-        formData['reasons'].push($(this).val());
+        reasons.push($(this).val());
     });
 
     // Добавляем текстовое пояснение, если оно есть
     const explanation = $('textarea[name="explanation"]').val();
-    if (explanation !== undefined && explanation.trim() !== '') {
-        formData['explanation'] = explanation;
-    }
 
     $.ajax({
         type: "POST",
-        url: "/admin/student/decline", // безопасный путь
+        url: "/admin/student/decline",
         contentType: "application/json",
         data: JSON.stringify({ reasons: reasons, explanation: explanation }),
         success: function () {
             window.location.href = "/admin/user/application";
         }
-    });    
+    });
 });
+
 
 
 
@@ -552,61 +669,61 @@ $(document).ready(function () {
     $('#exam_date').focus();
 });
 
-//---Examiner list--------------------
-$('#exam_code').inputmask('99-99-99', { autoUnmask: true });
+$(document).ready(function () {
+    $('#exam_code').inputmask('99-99-99', { autoUnmask: true });
 
-function setupList({ selectorIcon, selectorButton, labelOn, labelOff, roleSelectorClass }) {
-    const icons = document.querySelectorAll(selectorIcon);
-    const button = document.querySelector(selectorButton);
+    function setupList({ selectorIcon, selectorButton, labelOn, labelOff, roleSelectorClass }) {
+        const icons = document.querySelectorAll(selectorIcon);
+        const button = document.querySelector(selectorButton);
 
-    // вспомогательная функция проверки "все выбраны?"
-    function checkAllSelected() {
-        return Array.from(icons).every(icon => icon.classList.contains('active'));
-    }
+        // вспомогательная функция проверки "все выбраны?"
+        function checkAllSelected() {
+            return Array.from(icons).every(icon => icon.classList.contains('active'));
+        }
 
-    // обновление текста кнопки в зависимости от состояния
-    function updateButtonLabel() {
-        const allSelected = checkAllSelected();
-        button.textContent = allSelected ? labelOff : labelOn;
-    }
+        // обновление текста кнопки в зависимости от состояния
+        function updateButtonLabel() {
+            const allSelected = checkAllSelected();
+            button.textContent = allSelected ? labelOff : labelOn;
+        }
 
-    // обработчик кликов по иконке
-    icons.forEach(icon => {
-        icon.addEventListener('click', () => {
-            icon.classList.toggle('active');
-
-            const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
-            if (icon.classList.contains('active')) {
-                roleSelector?.style.setProperty('display', 'block');
-            } else {
-                roleSelector?.style.setProperty('display', 'none');
-            }
-
-            updateButtonLabel(); // обновляем текст кнопки при каждом клике
-        });
-    });
-
-    // обработчик кнопки "выбрать/убрать всех"
-    button.addEventListener('click', function (e) {
-        e.preventDefault();
-        const allSelected = checkAllSelected();
-        const shouldActivate = !allSelected;
-
+        // обработчик кликов по иконке
         icons.forEach(icon => {
-            icon.classList.toggle('active', shouldActivate);
+            icon.addEventListener('click', () => {
+                icon.classList.toggle('active');
 
-            const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
-            if (shouldActivate) {
-                roleSelector?.style.setProperty('display', 'block');
-            } else {
-                roleSelector?.style.setProperty('display', 'none');
-            }
+                const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
+                if (icon.classList.contains('active')) {
+                    roleSelector?.style.setProperty('display', 'block');
+                } else {
+                    roleSelector?.style.setProperty('display', 'none');
+                }
+
+                updateButtonLabel(); // обновляем текст кнопки при каждом клике
+            });
         });
 
-        updateButtonLabel();
-    });
-}
+        // обработчик кнопки "выбрать/убрать всех"
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+            const allSelected = checkAllSelected();
+            const shouldActivate = !allSelected;
 
+            icons.forEach(icon => {
+                icon.classList.toggle('active', shouldActivate);
+
+                const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
+                if (shouldActivate) {
+                    roleSelector?.style.setProperty('display', 'block');
+                } else {
+                    roleSelector?.style.setProperty('display', 'none');
+                }
+            });
+
+            updateButtonLabel();
+        });
+    }
+});
 
 
 $(document).on('click', '.profile__examiner-item .profile__menu-icon', function (e) {
@@ -619,23 +736,6 @@ $(document).on('click', '.profile__examiner-item .profile__menu-icon', function 
         roleSelect.hide();
     }
 });
-
-setupList({
-    selectorIcon: '.profile__examiner-item .profile__menu-icon',
-    selectorButton: '#select-all_examiner',
-    labelOn: 'Выбрать всех',
-    labelOff: 'Убрать всех',
-    roleSelectorClass: '.profile__examiner-role'
-});
-
-setupList({
-    selectorIcon: '.profile__student-item .profile__menu-icon',
-    selectorButton: '#select-all_student',
-    labelOn: 'Выбрать всех',
-    labelOff: 'Убрать всех',
-    roleSelectorClass: ''
-});
-
 
 function getUserList(role) {
     const roles = {
@@ -672,25 +772,20 @@ function getUserList(role) {
 }
 
 //--Отправка формы создания экзамена
-function submitExamForm(link) {
+function submitExamForm(link, autoSchedule) {
     let formData = new FormData();
-    let examiners = [];
-    let students = [];
+    let examiners = getUserList('examiner');
+    let students = getUserList('student');
     let date = $('#exam_date').val();
     let commissionStart = $('#commission_start').val();
     let commissionEnd = $('#commission_end').val();
 
-    // Получаем всех выбранных экзаменаторов
-    examiners = getUserList('examiner');
-    // Получаем всех выбранных студентов
-    students = getUserList('student');
-
-    // Добавляем экзаменаторов в FormData
     formData.append('examiners', JSON.stringify(examiners));
     formData.append('students', JSON.stringify(students));
     formData.append('date', date);
     formData.append('commission_start', commissionStart);
     formData.append('commission_end', commissionEnd);
+    formData.append('auto_schedule', autoSchedule ? 'true' : 'false'); // ВАЖНО
 
     $.ajax({
         type: "POST",
@@ -701,27 +796,29 @@ function submitExamForm(link) {
         data: formData,
         success: function (res) {
             if (res.success) {
-                showAlert("Данные успешно сохранены!");
-                return window.location.href = "/admin/exam/planning";
+                showAlert("Экзамен сохранён!");
+                window.location.href = autoSchedule ? "/admin/exam/scheduled" : "/admin/exam/planning";
             } else {
-                showAlert("Ошибка при сохранении данных!", "error");
+                showAlert("Ошибка при сохранении!", "error");
             }
-        }, error: function (xhr, status, error) {
-            showAlert("Ошибка при сохранении данных!", "error");
+        },
+        error: function (xhr, status, error) {
+            showAlert("Ошибка при сохранении!", "error");
             console.error('AJAX Error:', status, error);
         }
     });
-};
+}
+
 
 // Отправка по кнопке
 $('#create_exam').on('click', function (e) {
     e.preventDefault();
-    submitExamForm("/admin/exam/create");
+    submitExamForm("/admin/exam/create", false); // planned
 });
 
 $('#assign_exam').on('click', function (e) {
-    e.preventDefault("/admin/exam/assign");
-    
+    e.preventDefault();
+    submitExamForm("/admin/exam/create", true); // scheduled
 });
 
 // Отправка по Enter внутри любых input'ов
@@ -741,9 +838,81 @@ $(document).ready(function () {
     });
 });
 
-//--Exam Application Page-----------------------------------
-$('#agree_application').on('click', function (e) {
+$(document).ready(function () {
+    $('#agree_application').on('click', function (e) {
+        e.preventDefault();
+
+        const appID = $('body').data('id');
+
+        if (!appID) {
+            alert("Ошибка: не удалось получить ID заявления");
+            return;
+        }
+
+        $.ajax({
+            url: '/admin/api/application/approve', // маршрут, обрабатывающий одобрение
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ id: appID }),
+            success: function (response) {
+                window.location.href = "/admin/exam/students";
+            },
+            error: function (xhr) {
+                alert("Ошибка подтверждения: " + xhr.responseText);
+            }
+        });
+    });
+    $('#decline_application').on('click', function (e) {
+        e.preventDefault();
+        openModal("decline_form");
+    });
+
+});
+
+$(document).on('click', 'body.exam-planning .profile__exam-link:contains("Назначить")', function (e) {
     e.preventDefault();
 
-    //-----------------------------------------------------------------------
-})
+    // получаем ID экзамена (нужно добавить data-id в HTML-шаблоне!)
+    const examID = $(this).closest('[data-id]').data('id');
+
+    if (!examID) {
+        alert("Ошибка: не найден ID экзамена");
+        return;
+    }
+
+    $.ajax({
+        url: '/admin/api/exam/schedule',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ id: examID }),
+        success: function (response) {
+            location.reload();
+        },
+        error: function (xhr) {
+            alert("Ошибка назначения: " + xhr.responseText);
+        }
+    });
+});
+
+$(document).on('click', '.open-exam', function (e) {
+    e.preventDefault();
+
+    const examID = $(this).data('id');
+    if (!examID) {
+        alert("ID экзамена не найден");
+        return;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/api/exam/set",
+        contentType: "application/json",
+        data: JSON.stringify({ id: examID }),
+        success: function () {
+            window.location.href = "/admin/exam/show";
+        },
+        error: function () {
+            alert("Ошибка открытия экзамена");
+        }
+    });
+});

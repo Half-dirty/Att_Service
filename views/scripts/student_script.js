@@ -733,9 +733,12 @@ $('.popup__decline-form').on('click', function (e) {
 
 $('#send__application').on('click', function (e) {  
     e.preventDefault();
-    let formData = new FormData(this);
+
+    let form = $('.profile__body')[0]; // ← правильное указание на <form>
+    let formData = new FormData(form);
+
     for (const [key, value] of formData.entries()) {
-        console.log(`${key}: ${value}`);
+        console.log(`${key}:`, value);
     }
 
     $.ajax({
@@ -747,6 +750,7 @@ $('#send__application').on('click', function (e) {
         success: function (res) {
             if (res.success) {
                 showAlert("Данные успешно сохранены!");
+                window.location.href = "/user/application";
             } else {
                 showAlert("Ошибка при сохранении данных!", "error");
             }
@@ -755,8 +759,9 @@ $('#send__application').on('click', function (e) {
             showAlert("Ошибка при сохранении данных!", "error");
             console.error('AJAX Error:', status, error);
         }
-    })
+    });
 });
+
 
 // $('#send__application').on('click', function (e) {
 //     e.preventDefault();

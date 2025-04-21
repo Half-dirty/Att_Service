@@ -2,11 +2,13 @@ package main
 
 import (
 	"att_service/config"
+	"att_service/controllers"
 	"att_service/database"
 	"att_service/routes"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
 	_ "github.com/gofiber/template/html/v2"
 )
@@ -20,6 +22,12 @@ func main() {
 		Views:     engine,
 		BodyLimit: 20 * 1024 * 1024,
 	})
+
+	// 1. Создаем store
+	store := session.New()
+
+	// 2. Делаем его доступным во всех контроллерах
+	controllers.SessionStore = store
 
 	app.Static("/", "./views/")
 	app.Static("/style", "./views/style")

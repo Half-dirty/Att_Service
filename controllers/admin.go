@@ -10,13 +10,18 @@ import (
 	"io"
 	"log"
 	"os"
-
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/gofiber/fiber/v2/middleware/session"
+	"gorm.io/gorm"
+
 	"github.com/gofiber/fiber/v2"
 )
+
+var SessionStore *session.Store
 
 func AdminSetTargetStudent(c *fiber.Ctx) error {
 	var body struct {
@@ -30,8 +35,10 @@ func AdminSetTargetStudent(c *fiber.Ctx) error {
 		})
 	}
 
-	c.Locals("targetStudentID", body.ID)
-	c.Locals("source", body.Source)
+	sess, _ := SessionStore.Get(c)
+	sess.Set("targetStudentID", body.ID)
+	sess.Set("source", body.Source)
+	_ = sess.Save()
 
 	return c.JSON(fiber.Map{"success": true})
 }
@@ -53,10 +60,13 @@ func AdminChangeUserRole(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Неверный формат данных"})
 	}
 
-	userIDRaw := c.Locals("targetStudentID")
-	userID, ok := userIDRaw.(uint)
-	if !ok || userID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Некорректный ID"})
+	// Достаём сессию
+	sess, _ := SessionStore.Get(c)
+
+	studentIDRaw := sess.Get("targetStudentID")
+	studentID, ok := studentIDRaw.(uint)
+	if !ok || studentID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
 	}
 
 	// Проверяем корректность роли
@@ -65,7 +75,7 @@ func AdminChangeUserRole(c *fiber.Ctx) error {
 	}
 
 	// Обновляем роль пользователя в БД
-	if err := database.DB.Model(&models.User{}).Where("id = ?", userID).Update("role", body.Role).Error; err != nil {
+	if err := database.DB.Model(&models.User{}).Where("id = ?", studentID).Update("role", body.Role).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "error": "Ошибка обновления роли"})
 	}
 
@@ -73,7 +83,14 @@ func AdminChangeUserRole(c *fiber.Ctx) error {
 }
 
 func AdminDeclineStudent(c *fiber.Ctx) error {
-	studentID := c.Locals("targetStudentID").(uint)
+	// Достаём сессию
+	sess, _ := SessionStore.Get(c)
+
+	studentIDRaw := sess.Get("targetStudentID")
+	studentID, ok := studentIDRaw.(uint)
+	if !ok || studentID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
+	}
 
 	var student models.User
 	if err := database.DB.First(&student, studentID).Error; err != nil {
@@ -138,6 +155,15 @@ func AdminCreateExamPage(c *fiber.Ctx) error {
 	database.DB.Where("role = ? AND status = ?", "examiner", "approved").Find(&rawExaminers)
 	database.DB.Where("role = ? AND status = ?", "student", "approved").Find(&rawStudents)
 
+	// Оставляем только студентов с последним approved заявлением
+	var approvedStudents []models.User
+	for _, u := range rawStudents {
+		var lastApp models.Application
+		if err := database.DB.Where("user_id = ?", u.ID).Order("created_at DESC").First(&lastApp).Error; err == nil && lastApp.Status == "approved" {
+			approvedStudents = append(approvedStudents, u)
+		}
+	}
+
 	// Подсчёт количества экзаменов со статусом scheduled и completed
 	var examCount int64
 	database.DB.Model(&models.Exam{}).Where("status IN ?", []string{"scheduled", "completed"}).Count(&examCount)
@@ -160,9 +186,10 @@ func AdminCreateExamPage(c *fiber.Ctx) error {
 	}
 
 	type ExamUser struct {
-		ID     uint
-		Name   string
-		Avatar string
+		ID       uint
+		Name     string
+		Avatar   string
+		Selected bool
 	}
 
 	var examiners, students []ExamUser
@@ -173,7 +200,7 @@ func AdminCreateExamPage(c *fiber.Ctx) error {
 			Avatar: findAvatar(u),
 		})
 	}
-	for _, u := range rawStudents {
+	for _, u := range approvedStudents {
 		students = append(students, ExamUser{
 			ID:     u.ID,
 			Name:   fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
@@ -195,25 +222,22 @@ func AdminCreateExamPage(c *fiber.Ctx) error {
 func generateExamCode(index int64) string {
 	return fmt.Sprintf("06-30-%d", index)
 }
-
 func AdminCreateExam(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 
-	// Проверка прав доступа
+	// Проверка прав
 	var currentUser models.User
-	if err := database.DB.First(&currentUser, userID).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).SendString("Пользователь не найден")
-	}
-	if currentUser.Role != "admin" {
+	if err := database.DB.First(&currentUser, userID).Error; err != nil || currentUser.Role != "admin" {
 		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
 	}
 
-	// Получение данных из формы
+	// Получение формы
 	form, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).SendString("Ошибка получения данных формы")
 	}
 
+	// Извлечение параметров
 	examinersRaw := form.Value["examiners"]
 	studentsRaw := form.Value["students"]
 	dateStr := form.Value["date"][0]
@@ -222,7 +246,6 @@ func AdminCreateExam(c *fiber.Ctx) error {
 
 	var examinersID []uint
 	var studentsID []uint
-
 	_ = json.Unmarshal([]byte(examinersRaw[0]), &examinersID)
 	_ = json.Unmarshal([]byte(studentsRaw[0]), &studentsID)
 
@@ -230,12 +253,30 @@ func AdminCreateExam(c *fiber.Ctx) error {
 	commissionStart, _ := time.Parse("2006-01-02", commissionStartStr)
 	commissionEnd, _ := time.Parse("2006-01-02", commissionEndStr)
 
-	// Формируем экзамен
-	exam := models.Exam{
-		Date:            date,
-		CommissionStart: commissionStart,
-		CommissionEnd:   commissionEnd,
-		Status:          "planned", // изначально всегда planned
+	status := "planned"
+	if val, ok := form.Value["auto_schedule"]; ok && val[0] == "true" {
+		status = "scheduled"
+	}
+
+	// Загружаем экзамен из сессии, если есть
+	sess, _ := SessionStore.Get(c)
+	examIDRaw := sess.Get("targetExamID")
+	var exam models.Exam
+	if examID, ok := examIDRaw.(uint); ok && examID > 0 {
+		if err := database.DB.First(&exam, examID).Error; err != nil {
+			return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+		}
+		exam.Date = date
+		exam.CommissionStart = commissionStart
+		exam.CommissionEnd = commissionEnd
+		exam.Status = status
+	} else {
+		exam = models.Exam{
+			Date:            date,
+			CommissionStart: commissionStart,
+			CommissionEnd:   commissionEnd,
+			Status:          status,
+		}
 	}
 
 	// Добавляем экзаменаторов
@@ -246,15 +287,190 @@ func AdminCreateExam(c *fiber.Ctx) error {
 	}
 
 	// Добавляем студентов
-	if len(studentsID) > 0 {
-		var students []models.User
-		database.DB.Where("id IN ?", studentsID).Find(&students)
-		exam.Students = students
+	var filteredStudents []models.User
+	for _, id := range studentsID {
+		var user models.User
+		if err := database.DB.First(&user, id).Error; err != nil || user.Role != "student" {
+			continue
+		}
+		var lastApp models.Application
+		if err := database.DB.Where("user_id = ?", user.ID).Order("created_at DESC").First(&lastApp).Error; err == nil && lastApp.Status == "approved" {
+			filteredStudents = append(filteredStudents, user)
+		}
+	}
+	exam.Students = filteredStudents
+
+	// Сохраняем: если новый — Create, если редактирование — Save (обновление)
+	if exam.ID > 0 {
+		if err := database.DB.Session(&gorm.Session{FullSaveAssociations: true}).Save(&exam).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Ошибка обновления экзамена")
+		}
+	} else {
+		if err := database.DB.Create(&exam).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Ошибка создания экзамена")
+		}
 	}
 
-	// Сохраняем экзамен
-	if err := database.DB.Create(&exam).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка создания экзамена")
+	// Очищаем экзамен из сессии
+	sess.Delete("targetExamID")
+	sess.Save()
+
+	return c.JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func AdminCancelExam(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	// Проверка, что пользователь админ
+	var admin models.User
+	if err := database.DB.First(&admin, userID).Error; err != nil || admin.Role != "admin" {
+		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	}
+
+	// Получаем JSON тело
+	var body struct {
+		ExamID uint `json:"exam_id"`
+	}
+	if err := c.BodyParser(&body); err != nil || body.ExamID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("Неверный ID экзамена")
+	}
+
+	// Находим экзамен
+	var exam models.Exam
+	if err := database.DB.First(&exam, body.ExamID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+	}
+
+	// Меняем статус
+	exam.Status = "planned"
+	if err := database.DB.Save(&exam).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка при сохранении")
+	}
+
+	return c.JSON(fiber.Map{"success": true})
+}
+
+func AdminShowExam(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	var admin models.User
+	if err := database.DB.First(&admin, userID).Error; err != nil || admin.Role != "admin" {
+		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	}
+
+	sess, _ := SessionStore.Get(c)
+	examIDRaw := sess.Get("targetExamID")
+	examID, ok := examIDRaw.(uint)
+	if !ok || examID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("ID экзамена не найден в сессии")
+	}
+
+	// Загружаем экзамен с выбранными пользователями
+	var exam models.Exam
+	if err := database.DB.Preload("Examiners").Preload("Students").First(&exam, examID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+	}
+
+	// Получаем всех пользователей с ролями
+	var allUsers []models.User
+	if err := database.DB.Where("role IN ?", []string{"student", "examiner"}).Find(&allUsers).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователей")
+	}
+
+	// Карты для проверки, кто был выбран
+	selectedStudentIDs := make(map[uint]bool)
+	selectedExaminerIDs := make(map[uint]bool)
+	for _, u := range exam.Students {
+		selectedStudentIDs[u.ID] = true
+	}
+	for _, u := range exam.Examiners {
+		selectedExaminerIDs[u.ID] = true
+	}
+
+	// Структура для шаблона
+	type ExamUser struct {
+		ID       uint
+		Name     string
+		Avatar   string
+		Selected bool
+	}
+
+	var examiners []ExamUser
+	var students []ExamUser
+
+	for _, u := range allUsers {
+		avatar := findAvatar(u.StoragePath)
+		fullName := fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp)
+
+		if u.Role == "examiner" {
+			examiners = append(examiners, ExamUser{
+				ID:       u.ID,
+				Name:     fullName,
+				Avatar:   avatar,
+				Selected: selectedExaminerIDs[u.ID],
+			})
+		} else if u.Role == "student" {
+			// Проверяем наличие одобренного заявления
+			var lastApp models.Application
+			if err := database.DB.Where("user_id = ?", u.ID).
+				Order("created_at DESC").
+				First(&lastApp).Error; err != nil || lastApp.Status != "approved" {
+				continue
+			}
+			students = append(students, ExamUser{
+				ID:       u.ID,
+				Name:     fullName,
+				Avatar:   avatar,
+				Selected: selectedStudentIDs[u.ID],
+			})
+		}
+	}
+
+	return services.Render(c, "admin", "exams/create_exam.html", fiber.Map{
+		"role":             admin.Role,
+		"status":           admin.Status,
+		"avatar":           findAvatar(admin.StoragePath),
+		"ExamCode":         fmt.Sprintf("06-30-%d", exam.ID),
+		"Examiners":        examiners,
+		"Students":         students,
+		"exam_date":        exam.Date.Format("2006-01-02"),
+		"commission_start": exam.CommissionStart.Format("2006-01-02"),
+		"commission_end":   exam.CommissionEnd.Format("2006-01-02"),
+		"path":             c.Path(),
+	})
+}
+
+func DeclineApplication(c *fiber.Ctx) error {
+	type DeclineRequest struct {
+		ID          uint     `json:"id"`
+		Reasons     []string `json:"reasons"`
+		Explanation string   `json:"explanation"`
+	}
+
+	var req DeclineRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Некорректный формат запроса")
+	}
+
+	if req.ID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("Отсутствует ID заявления")
+	}
+
+	// Ищем заявку
+	var app models.Application
+	if err := database.DB.First(&app, req.ID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Заявление не найдено")
+	}
+
+	// Обновляем статус и причину
+	app.Status = "declined"
+	app.DeclineReason = strings.Join(req.Reasons, ", ")
+	app.DeclineExplanation = req.Explanation
+
+	if err := database.DB.Save(&app).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Не удалось обновить заявление")
 	}
 
 	return c.JSON(fiber.Map{
@@ -262,19 +478,32 @@ func AdminCreateExam(c *fiber.Ctx) error {
 	})
 }
 
+func AdminSetTargetExam(c *fiber.Ctx) error {
+	var body struct {
+		ID uint `json:"id"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	sess, _ := SessionStore.Get(c)
+	sess.Set("targetExamID", body.ID)
+	_ = sess.Save()
+
+	return c.JSON(fiber.Map{"success": true})
+}
+
 func AdminShowStudentProfile(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
+	// Достаём сессию
+	sess, _ := SessionStore.Get(c)
 
-	// Проверка прав доступа
-	var currentUser models.User
-	if err := database.DB.First(&currentUser, userID).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).SendString("Пользователь не найден")
-	}
-	if currentUser.Role != "admin" {
-		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	studentIDRaw := sess.Get("targetStudentID")
+	studentID, ok := studentIDRaw.(uint)
+	if !ok || studentID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
 	}
 
-	studentID := c.Locals("targetStudentID").(uint)
+	source := sess.Get("source")
 
 	// Загружаем пользователя
 	var student models.User
@@ -298,7 +527,6 @@ func AdminShowStudentProfile(c *fiber.Ctx) error {
 		avatar = "../pictures/Generic avatar.png"
 	}
 
-	source := c.Locals("source")
 	showButtons := false
 
 	if source == "application" {
@@ -389,19 +617,66 @@ func ExamPlanningPage(c *fiber.Ctx) error {
 	})
 }
 
+func ExamScheduledPage(c *fiber.Ctx) error {
+	var exams []models.Exam
+	if err := database.DB.
+		Where("status = ?", "scheduled").
+		Order("date ASC").
+		Find(&exams).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка при загрузке назначенных экзаменов")
+	}
+
+	type ExamItem struct {
+		ID   uint
+		Date string
+	}
+
+	var scheduledExams []ExamItem
+	for _, exam := range exams {
+		scheduledExams = append(scheduledExams, ExamItem{
+			ID:   exam.ID,
+			Date: exam.Date.Format("02.01.2006"),
+		})
+	}
+
+	return services.Render(c, "admin", "exams/exam-scheduled.html", fiber.Map{
+		"ScheduledExams": scheduledExams,
+	})
+}
+
+func ScheduleExam(c *fiber.Ctx) error {
+	var input struct {
+		ID uint `json:"id"`
+	}
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Некорректный формат данных")
+	}
+
+	var exam models.Exam
+	if err := database.DB.First(&exam, input.ID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+	}
+
+	// Обновляем статус
+	exam.Status = "scheduled"
+	if err := database.DB.Save(&exam).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка при обновлении")
+	}
+
+	return c.JSON(fiber.Map{"success": true})
+}
+
 func AdminShowStudentDocuments(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
+	// Достаём сессию
+	sess, _ := SessionStore.Get(c)
 
-	// Проверка роли
-	var currentUser models.User
-	if err := database.DB.First(&currentUser, userID).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).SendString("Пользователь не найден")
-	}
-	if currentUser.Role != "admin" {
-		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	studentIDRaw := sess.Get("targetStudentID")
+	studentID, ok := studentIDRaw.(uint)
+	if !ok || studentID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
 	}
 
-	studentID := c.Locals("targetStudentID").(uint)
+	source := sess.Get("source")
 
 	// Получаем пользователя, паспорт, диплом
 	var student models.User
@@ -433,8 +708,6 @@ func AdminShowStudentDocuments(c *fiber.Ctx) error {
 			}
 		}
 	}
-
-	source := c.Locals("source")
 	showButtons := false
 
 	if source == "application" {
@@ -465,7 +738,14 @@ func AdminShowStudentDocuments(c *fiber.Ctx) error {
 }
 
 func AdminConfirmStudent(c *fiber.Ctx) error {
-	studentID := c.Locals("targetStudentID").(uint)
+	// Достаём сессию
+	sess, _ := SessionStore.Get(c)
+
+	studentIDRaw := sess.Get("targetStudentID")
+	studentID, ok := studentIDRaw.(uint)
+	if !ok || studentID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
+	}
 
 	// Проверка прав администратора
 	adminID := c.Locals("userID").(uint)
@@ -876,10 +1156,13 @@ func AdminUserList(c *fiber.Ctx) error {
 }
 
 func AdminDeleteStudent(c *fiber.Ctx) error {
-	idRaw := c.Locals("targetStudentID")
-	userID, ok := idRaw.(uint)
+	// Достаём сессию
+	sess, _ := SessionStore.Get(c)
+
+	studentIDRaw := sess.Get("targetStudentID")
+	userID, ok := studentIDRaw.(uint)
 	if !ok || userID == 0 {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Некорректный ID"})
+		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
 	}
 
 	var user models.User
@@ -917,6 +1200,10 @@ func AdminDeleteStudent(c *fiber.Ctx) error {
 	if err := database.DB.Unscoped().Delete(&user).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "error": "Ошибка удаления пользователя"})
 	}
+
+	sess.Delete("targetStudentID")
+	sess.Delete("source")
+	_ = sess.Save()
 
 	return c.JSON(fiber.Map{"success": true, "message": "Пользователь удалён и архив создан"})
 }
@@ -967,4 +1254,136 @@ func sanitizeString(s string) string {
 	s = strings.ReplaceAll(s, "@", "_")
 	s = strings.ReplaceAll(s, "/", "_")
 	return s
+}
+
+func GetAdminExamApplications(c *fiber.Ctx) error {
+	adminID := c.Locals("userID").(uint)
+	if adminID == 0 {
+		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
+	}
+
+	var applications []models.Application
+	if err := database.DB.Where("status = ?", "pending").Find(&applications).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки заявок")
+	}
+
+	type ExamItem struct {
+		UserName string
+		AppID    uint
+		Avatar   string
+	}
+
+	var exams []ExamItem
+	for _, app := range applications {
+		var user models.User
+		if err := database.DB.First(&user, app.UserID).Error; err == nil {
+			fullName := fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp)
+
+			avatar := ""
+			if user.StoragePath != "" {
+				files, _ := os.ReadDir(user.StoragePath)
+				for _, file := range files {
+					if strings.HasPrefix(file.Name(), "avatar") {
+						avatar = "/uploads/" + filepath.Base(user.StoragePath) + "/" + file.Name()
+						break
+					}
+				}
+			}
+
+			exams = append(exams, ExamItem{
+				UserName: fullName,
+				AppID:    app.ID,
+				Avatar:   avatar,
+			})
+		}
+	}
+
+	return services.Render(c, "admin", "exam_applications/exam-applications.html", fiber.Map{
+		"Exams": exams,
+	})
+}
+
+func AdminShowStudentApplication(c *fiber.Ctx) error {
+	adminID := c.Locals("userID").(uint)
+	if adminID == 0 {
+		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
+	}
+
+	appID, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Некорректный ID заявления")
+	}
+
+	var application models.Application
+	if err := database.DB.First(&application, appID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Заявление не найдено")
+	}
+
+	var user models.User
+	if err := database.DB.First(&user, application.UserID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Пользователь не найден")
+	}
+
+	// Поиск изображений пользователя
+	getImages := func(prefix string) []string {
+		var images []string
+		if user.StoragePath != "" {
+			files, _ := os.ReadDir(user.StoragePath)
+			for _, f := range files {
+				if strings.Contains(f.Name(), prefix) {
+					images = append(images, "/uploads/"+filepath.Base(user.StoragePath)+"/"+f.Name())
+				}
+			}
+		}
+		return images
+	}
+
+	return services.Render(c, "admin", "exam_applications/exam-application.html", fiber.Map{
+		"AppID":                       appID,
+		"native_language":             application.NativeLanguage,
+		"citizenship":                 application.Citizenship,
+		"marital_status":              application.MaritalStatus,
+		"organization":                application.Organization,
+		"job_position":                application.JobPosition,
+		"requested_category":          application.RequestedCategory,
+		"basis_for_attestation":       application.BasisForAttestation,
+		"existing_category":           application.ExistingCategory,
+		"existing_category_term":      application.ExistingCategoryTerm,
+		"work_experience":             application.WorkExperience,
+		"current_position_experience": application.CurrentPositionExperience,
+		"awards_info":                 application.AwardsInfo,
+		"training_info":               application.TrainingInfo,
+		"memberships":                 application.Memberships,
+		"consent":                     application.Consent,
+		"status":                      user.Status,
+		"role":                        user.Role,
+		"avatar":                      findAvatar(user.StoragePath),
+		"diplom_images":               getImages("диплом"),
+		"diplom_jest_images":          getImages("жест"),
+		"passport_images":             getImages("паспорт"),
+		"tk_book_images":              getImages("трудовая"),
+		"characteristic_images":       getImages("характеристика"),
+	})
+}
+
+func ApproveApplication(c *fiber.Ctx) error {
+	var body struct {
+		ID uint `json:"id"`
+	}
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Неверный формат запроса")
+	}
+
+	var application models.Application
+	if err := database.DB.First(&application, body.ID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Заявление не найдено")
+	}
+
+	application.Status = "approved"
+	if err := database.DB.Save(&application).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка при сохранении")
+	}
+
+	return c.SendStatus(fiber.StatusOK)
 }

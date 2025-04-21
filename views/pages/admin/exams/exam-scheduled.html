@@ -14,7 +14,7 @@
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
-                <a class="header__logo" href="./index.html">
+                <a class="header__logo" href="/">
                     <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
@@ -31,40 +31,24 @@
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item">
-                        <a href="./exam-list.html" class="menu__button">Прошедшие экзамены</a>
+                        <a href="/admin/exam/list" class="menu__button">Прошедшие экзамены</a>
                     </li>
                     <li class="menu__item">
-                        <a href="./exam-planning.html" type="button" class="menu__button">Запланированные экзамены</a>
+                        <a href="/admin/exam/planning" type="button" class="menu__button">Запланированные экзамены</a>
                     </li>
                     <li class="menu__item menu__item--active">
-                        <a href="./exam-scheduled.html" class="menu__button">Назначенные экзамены</a>
+                        <a href="/admin/exam/scheduled" class="menu__button">Назначенные экзамены</a>
                     </li>
                 </ul>
             </nav>
 
             <section class="profile">
-                <!-- <div class="profile__header">
-                    <div class="profile__exam-active">
-                        <div class="profile__exam-item_active">
-                            <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
-                            </div>
-                            <div class="profile__exam-buttons_menu">
-                                <div class="profile__link">
-                                    <a href="#" class="profile__exam-link profile__exam-link--cancel">Отменить</a>
-                                </div>
-                                <div class="profile__link">
-                                    <a href="#" class="profile__link-start">Перейти к экзамену</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
                 <div class="profile__exams">
                     <div class="profile__exam_list">
-                        <div class="profile__exam">
+                        {{range .ScheduledExams}}
+                        <div class="profile__exam" data-id="{{.ID}}">
                             <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
+                                <h2>Экзамен от {{.Date}}</h2>
                             </div>
                             <div class="profile__exam-buttons_menu">
                                 <div class="profile__link">
@@ -75,32 +59,12 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="profile__exam">
-                            <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
-                            </div>
-                            <div class="profile__exam-buttons_menu">
-                                <div class="profile__link">
-                                    <a href="#" class="profile__exam-link profile__exam-link--cancel">Отменить</a>
-                                </div>
-                                <div class="profile__link">
-                                    <a href="#" class="profile__exam-link">Посмотреть экзамен</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="profile__exam">
-                            <div class="profile__exam-name">
-                                <h2>Экзамен от 03.03.2025</h2>
-                            </div>
-                            <div class="profile__exam-buttons_menu">
-                                <div class="profile__link">
-                                    <a href="#" class="profile__exam-link profile__exam-link--cancel">Отменить</a>
-                                </div>
-                                <div class="profile__link">
-                                    <a href="#" class="profile__exam-link">Посмотреть экзамен</a>
-                                </div>
-                            </div>
-                        </div>
+                        
+                        {{end}}
+                    
+                        {{if eq (len .ScheduledExams) 0}}
+                        <h2>Назначенных экзаменов пока нет</h2>
+                        {{end}}
                     </div>
                 </div>
             </section>

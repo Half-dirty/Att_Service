@@ -69,6 +69,9 @@ type Application struct {
 	Consent                   bool
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time
+	Status                    string `gorm:"size:255"`
+	DeclineReason             string `gorm:"size:255"`
+	DeclineExplanation        string `gorm:"size:255"`
 }
 
 // UserDocument представляет загруженный пользователем документ.
