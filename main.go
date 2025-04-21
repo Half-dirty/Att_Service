@@ -22,8 +22,8 @@ func main() {
 	})
 
 	app.Static("/", "./views/")
-	app.Static("/scripts", "./views/scripts")
 	app.Static("/style", "./views/style")
+	app.Static("/scripts", "./views/scripts")
 	app.Static("/pictures", "./views/pictures")
 	app.Static("/uploads", "./uploads")
 
