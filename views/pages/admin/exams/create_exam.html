@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../../style/style.css">
-    <link rel="stylesheet" href="../../../style/admin/global.css">
-    <link rel="stylesheet" href="../../../style/admin/exams.css">
+    <link rel="stylesheet" href="../../style/style.css">
+    <link rel="stylesheet" href="../../style/admin/global.css">
+    <link rel="stylesheet" href="../../style/admin/exams.css">
     <title>Document</title>
 </head>
 
@@ -14,7 +14,7 @@
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
-                <a class="header__logo" href="./index.html">
+                <a class="header__logo" href="/">
                     <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
@@ -73,17 +73,26 @@
                         <div class="profile__people-examiner">
                             <div class="profile__people-header">
                                 <label for="examiner-input">Выберите экзаменаторов:</label>
-                                <button class="profile__people-select_all" id="select-all_examiner">Выбрать всех</button>
+                                <button class="profile__people-select_all" id="select-all_examiner">Выбрать
+                                    всех</button>
                             </div>
                             {{range .Examiners}}
                             <div class="profile__examiner-item" data-id="{{.ID}}">
                                 <img class="profile__avatar-mini" src="{{.Avatar}}" alt="Аватар">
                                 <div class="profile__user-name">{{.Name}}</div>
-                                <div class="profile__menu-icon"></div>
+                                <div class="profile__examiner-checked">
+                                    <div class="profile__menu-icon"></div>
+                                    <select class="profile__examiner-role" name="examiner_role_{{.ID}}"
+                                        style="display: none;">
+                                        <option value="chair">Председатель</option>
+                                        <option value="secretary">Секретарь</option>
+                                        <option value="examiner" selected>Экзаменатор</option>
+                                    </select>
+                                </div>
                             </div>
                             {{end}}
                         </div>
-                        
+
                         <div class="profile__people-student">
                             <div class="profile__people-header">
                                 <label for="student-input">Выберите экзаменуемых:</label>
@@ -96,10 +105,15 @@
                                 <div class="profile__menu-icon"></div>
                             </div>
                             {{end}}
-                        </div>                        
+                        </div>
                     </div>
-                    <div class="profile__save">
-                        <button class="profile__save-button" id="create_exam">Сохранить</button>
+                    <div class="profile__exam-buttons">
+                        <div class="profile__assign">
+                            <button class="profile__assign-button" id="assign_exam">Назначить</button>
+                        </div>
+                        <div class="profile__save">
+                            <button class="profile__save-button" id="create_exam">Сохранить</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -113,5 +127,16 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
 <script src="../../../scripts/admin_script.js"></script>
+<script>
+    $(document).ready(function () {
+        const path = window.location.pathname;
+
+        // Пример: скрыть поле, если текущий URL — /admin/exam/create
+        if (path === "/admin/exam/create") {
+            $("#exam_code").closest(".profile__item-part").hide(); // Скрыть родителя поля
+        }
+    });
+</script>
+
 
 </html>

@@ -78,7 +78,9 @@
                         <a href="/user/application" class="menu__button">Мои заявления</a>
                     </li>
                     {{end}}
-
+                    <li class="menu__item {{if eq .path "/user/exams"}}menu__item--active{{end}}">
+                        <a href="#" class="menu__button">Назначенные экзамены</a>
+                    </li>
                     <li class="menu__item {{if eq .path "/user/settings"}}menu__item--active{{end}}">
                         <a href="#" class="menu__button">Настройки</a>
                     </li>

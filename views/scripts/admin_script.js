@@ -156,7 +156,7 @@ $('#search_all_input').on('input', function (e) {
     }
 });
 
-$(document).on('click', '.delete-student', function(e) {
+$(document).on('click', '.delete-student', function (e) {
     e.preventDefault();
 
     if (!confirm('Вы точно хотите удалить пользователя?')) {
@@ -564,52 +564,99 @@ $(document).ready(function () {
 //---Examiner list--------------------
 $('#exam_code').inputmask('99-99-99', { autoUnmask: true });
 
-function setupList({ selectorIcon, selectorButton, labelOn, labelOff }) {
+function setupList({ selectorIcon, selectorButton, labelOn, labelOff, roleSelectorClass }) {
     const icons = document.querySelectorAll(selectorIcon);
     const button = document.querySelector(selectorButton);
-    let allSelected = false;
 
+    // вспомогательная функция проверки "все выбраны?"
+    function checkAllSelected() {
+        return Array.from(icons).every(icon => icon.classList.contains('active'));
+    }
+
+    // обновление текста кнопки в зависимости от состояния
+    function updateButtonLabel() {
+        const allSelected = checkAllSelected();
+        button.textContent = allSelected ? labelOff : labelOn;
+    }
+
+    // обработчик кликов по иконке
     icons.forEach(icon => {
         icon.addEventListener('click', () => {
             icon.classList.toggle('active');
+
+            const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
+            if (icon.classList.contains('active')) {
+                roleSelector?.style.setProperty('display', 'block');
+            } else {
+                roleSelector?.style.setProperty('display', 'none');
+            }
+
+            updateButtonLabel(); // обновляем текст кнопки при каждом клике
         });
     });
 
+    // обработчик кнопки "выбрать/убрать всех"
     button.addEventListener('click', function (e) {
         e.preventDefault();
-        allSelected = !allSelected;
+        const allSelected = checkAllSelected();
+        const shouldActivate = !allSelected;
 
         icons.forEach(icon => {
-            icon.classList.toggle('active', allSelected);
+            icon.classList.toggle('active', shouldActivate);
+
+            const roleSelector = icon.closest('.profile__examiner-item')?.querySelector(roleSelectorClass);
+            if (shouldActivate) {
+                roleSelector?.style.setProperty('display', 'block');
+            } else {
+                roleSelector?.style.setProperty('display', 'none');
+            }
         });
 
-        button.textContent = allSelected ? labelOff : labelOn;
+        updateButtonLabel();
     });
 }
+
+
+
+$(document).on('click', '.profile__examiner-item .profile__menu-icon', function (e) {
+    e.preventDefault();
+    let iconStatus = $(this).hasClass('active');
+    const roleSelect = $(this).closest('.profile__examiner-item').find('.profile__examiner-role');
+    if (iconStatus) {
+        roleSelect.show();
+    } else {
+        roleSelect.hide();
+    }
+});
 
 setupList({
     selectorIcon: '.profile__examiner-item .profile__menu-icon',
     selectorButton: '#select-all_examiner',
     labelOn: 'Выбрать всех',
-    labelOff: 'Убрать всех'
+    labelOff: 'Убрать всех',
+    roleSelectorClass: '.profile__examiner-role'
 });
 
 setupList({
     selectorIcon: '.profile__student-item .profile__menu-icon',
     selectorButton: '#select-all_student',
     labelOn: 'Выбрать всех',
-    labelOff: 'Убрать всех'
+    labelOff: 'Убрать всех',
+    roleSelectorClass: ''
 });
+
 
 function getUserList(role) {
     const roles = {
         'examiner': {
             icon: '.profile__examiner-item .profile__menu-icon',
-            item: '.profile__examiner-item'
+            item: '.profile__examiner-item',
+            roleSelectorClass: '.profile__examiner-role'
         },
         'student': {
             icon: '.profile__student-item .profile__menu-icon',
-            item: '.profile__student-item'
+            item: '.profile__student-item',
+            roleSelectorClass: ''
         }
     }
 
@@ -620,6 +667,12 @@ function getUserList(role) {
             const item = icon.closest(roles[role].item);
             if (item) {
                 users.push(item.getAttribute('data-id'));
+                if (role === 'examiner') {
+                    const roleSelect = item.querySelector(roles[role].roleSelectorClass);
+                    if (roleSelect) {
+                        users.push(roleSelect.value); // добавляем роль экзаменатора (не уверен, что работает)
+                    }
+                }
             }
         }
     });
@@ -628,7 +681,7 @@ function getUserList(role) {
 }
 
 //--Отправка формы создания экзамена
-function submitExamForm() {
+function submitExamForm(link) {
     let formData = new FormData();
     let examiners = [];
     let students = [];
@@ -650,7 +703,7 @@ function submitExamForm() {
 
     $.ajax({
         type: "POST",
-        url: "/admin/exam/create",
+        url: link,
         cache: false,
         processData: false,
         contentType: false,
@@ -672,7 +725,12 @@ function submitExamForm() {
 // Отправка по кнопке
 $('#create_exam').on('click', function (e) {
     e.preventDefault();
-    submitExamForm();
+    submitExamForm("/admin/exam/create");
+});
+
+$('#assign_exam').on('click', function (e) {
+    e.preventDefault("/admin/exam/assign");
+    
 });
 
 // Отправка по Enter внутри любых input'ов
@@ -691,3 +749,10 @@ $(document).ready(function () {
         }
     });
 });
+
+//--Exam Application Page-----------------------------------
+$('#agree_application').on('click', function (e) {
+    e.preventDefault();
+
+    //-----------------------------------------------------------------------
+})

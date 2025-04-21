@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/admin/global.css">
+    <link rel="stylesheet" href="../../../style/admin/applications.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="header__container">
+                <a class="header__logo" href="./index.html">
+                    <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
+                    <div class="header__logo-text__container">
+                        <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
+                    </div>
+                </a>
+                <input type="checkbox" id="menu-toggle" class="header__menu-toggle">
+                <label for="menu-toggle" class="header__menu-icon">
+                    <span></span>
+                </label>
+            </div>
+        </header>
+
+        <main class="main">
+            <nav class="menu">
+                <ul class="menu__list">
+                    <li class="menu__item menu__item--active">
+                        <a href="#" class="menu__button">Заявки на экзамен</a>
+                    </li>
+                </ul>
+            </nav>
+            <section class="profile">
+                <h1 class="profile__title">Заявки на экзамены</h1>
+                <div class="profile__application-list">
+                    {{range .Exams}}
+                    <div class="profile__application-item">
+                        <div class="profile__application-info">
+                            <div class="profile__application-avatar">
+                                <img src="../../../pictures/Group 1.svg" alt="Avatar"
+                                    class="profile__application-avatar-img">
+                            </div>
+                            <div class="profile__application-name">
+                                <h2>Заявка от {{.User}}</h2>
+                            </div>
+                        </div>
+                        <div class="profile__application-buttons">
+                            <div class="profile__link">
+                                <a href="#" class="profile__application-link">Посмотреть заявку</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__application-item">
+                        <div class="profile__application-info">
+                            <div class="profile__application-avatar">
+                                <img src="../../../pictures/Group 1.svg" alt="Avatar"
+                                    class="profile__application-avatar-img">
+                            </div>
+                            <div class="profile__application-name">
+                                <h2>Заявка от {{.User}}</h2>
+                            </div>
+                        </div>
+                        <div class="profile__application-buttons">
+                            <div class="profile__link">
+                                <a href="#" class="profile__application-link">Посмотреть заявку</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__application-item">
+                        <div class="profile__application-info">
+                            <div class="profile__application-avatar">
+                                <img src="../../../pictures/Group 1.svg" alt="Avatar"
+                                    class="profile__application-avatar-img">
+                            </div>
+                            <div class="profile__application-name">
+                                <h2>Заявка от {{.User}}</h2>
+                            </div>
+                        </div>
+                        <div class="profile__application-buttons">
+                            <div class="profile__link">
+                                <a href="#" class="profile__application-link">Посмотреть заявку</a>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer"></footer>
+    </div>
+</body>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="../../../scripts/admin_script.js"></script>
+
+</html>
