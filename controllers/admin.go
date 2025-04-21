@@ -82,54 +82,38 @@ func AdminChangeUserRole(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
+type DeclineRequest struct {
+	ID          uint     `json:"id"` // <--- добавлен ID!
+	Reasons     []string `json:"reasons"`
+	Explanation string   `json:"explanation"`
+}
+
 func AdminDeclineStudent(c *fiber.Ctx) error {
-	// Достаём сессию
-	sess, _ := SessionStore.Get(c)
+	var body DeclineRequest
 
-	studentIDRaw := sess.Get("targetStudentID")
-	studentID, ok := studentIDRaw.(uint)
-	if !ok || studentID == 0 {
-		return c.Status(fiber.StatusBadRequest).SendString("ID студента не найден в сессии")
-	}
-
-	var student models.User
-	if err := database.DB.First(&student, studentID).Error; err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"success": false, "error": "student not found"})
-	}
-
-	// Получение тела запроса
-	var body struct {
-		Reasons     []string `json:"reasons"`
-		Explanation string   `json:"explanation"`
-	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "cannot parse body"})
+		return c.Status(fiber.StatusBadRequest).SendString("Ошибка парсинга JSON")
 	}
 
-	var reasonLabels = map[string]string{
-		"invalid_name":     "Неверно указано ФИО",
-		"invalid_contacts": "Неверно указаны контакты",
-		"no_documents":     "Не все документы прикреплены",
+	if body.ID == 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("Не указан ID заявления")
 	}
 
-	reasons := []string{}
-	for _, key := range body.Reasons {
-		label, ok := reasonLabels[key]
-		if ok {
-			reasons = append(reasons, label)
-		} else {
-			reasons = append(reasons, key) // fallback
-		}
+	var app models.Application
+	if err := database.DB.First(&app, body.ID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Заявление не найдено")
 	}
 
-	student.Status = "declined"
-	student.DeclineReason = strings.Join(reasons, ", ")
-	if body.Explanation != "" {
-		student.DeclineReason += " | " + body.Explanation
+	app.Status = "declined"
+	app.Decline = &models.ApplicationDecline{
+		ApplicationID: app.ID,
+		Reasons:       strings.Join(body.Reasons, ", "),
+		Explanation:   body.Explanation,
+		CreatedAt:     time.Now(),
 	}
 
-	if err := database.DB.Save(&student).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"success": false, "error": "update error"})
+	if err := database.DB.Save(&app).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка сохранения отказа")
 	}
 
 	return c.JSON(fiber.Map{"success": true})
@@ -460,14 +444,18 @@ func DeclineApplication(c *fiber.Ctx) error {
 
 	// Ищем заявку
 	var app models.Application
-	if err := database.DB.First(&app, req.ID).Error; err != nil {
+	if err := database.DB.Preload("Decline").First(&app, req.ID).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).SendString("Заявление не найдено")
 	}
 
-	// Обновляем статус и причину
+	// Обновляем статус и создаём/обновляем отказ
 	app.Status = "declined"
-	app.DeclineReason = strings.Join(req.Reasons, ", ")
-	app.DeclineExplanation = req.Explanation
+	app.Decline = &models.ApplicationDecline{
+		ApplicationID: app.ID,
+		Reasons:       strings.Join(req.Reasons, ", "),
+		Explanation:   req.Explanation,
+		CreatedAt:     time.Now(),
+	}
 
 	if err := database.DB.Save(&app).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Не удалось обновить заявление")

@@ -69,9 +69,16 @@ type Application struct {
 	Consent                   bool
 	CreatedAt                 time.Time
 	UpdatedAt                 time.Time
-	Status                    string `gorm:"size:255"`
-	DeclineReason             string `gorm:"size:255"`
-	DeclineExplanation        string `gorm:"size:255"`
+	Status                    string              `gorm:"size:255"`
+	Decline                   *ApplicationDecline `gorm:"foreignKey:ApplicationID"`
+}
+
+type ApplicationDecline struct {
+	ID            uint   `gorm:"primaryKey"`
+	ApplicationID uint   `gorm:"uniqueIndex"` // Один к одному
+	Reasons       string `gorm:"type:text"`
+	Explanation   string `gorm:"type:text"`
+	CreatedAt     time.Time
 }
 
 // UserDocument представляет загруженный пользователем документ.

@@ -687,49 +687,43 @@ $('.popup__decline-form').on('click', function (e) {
     e.preventDefault();
     openModal('reason_decline');
 
+    const appId = $(this).data("id");
     let popup__body = $('.popup__list').empty();
 
     $.ajax({
-        type: "GET",
+        type: "POST",
         url: "/user/documents/reason",
+        contentType: "application/json",
+        data: JSON.stringify({ id: appId }),
         success: function (res) {
             if (res.success) {
-                let list = res.list;
+                const list = res.list;
                 let buf = ``;
 
-                if (list.length > 0) {
-                    if (list["invalid_name"]) {
-                        buf += `<label class="popup__item">
-                            <input type="checkbox" name="reason" value="invalid_name" readonly checked> Неверно указанное ФИО
-                        </label>`;
-                    }
-                    if (list["invalid_contacts"]) {
-                        buf += `<label class="popup__item">
-                            <input type="checkbox" name="reason" value="invalid_contacts" readonly checked> Неверно указанные контакты
-                        </label>`;
-                    }
-                    if (list["no_documents"]) {
-                        buf += `<label class="popup__item">
-                            <input type="checkbox" name="reason" value="no_documents" readonly checked> Прикреплены не все документы
-                        </label>`;
-                    }
-                    if (list[explanation]) {
-                        buf += `<div class="popup__textarea">
-                          <textarea placeholder="Пояснение" name="explanation" readonly>`+ list[exaplanation] + `</textarea>
-                        </div>`;
-                    }
-
-                    popup__body.append(buf);
+                if (list["invalid_name"]) {
+                    buf += `<label class="popup__item"><input type="checkbox" readonly checked> Неверно указано ФИО</label>`;
                 }
+                if (list["invalid_contacts"]) {
+                    buf += `<label class="popup__item"><input type="checkbox" readonly checked> Неверно указаны контакты</label>`;
+                }
+                if (list["no_documents"]) {
+                    buf += `<label class="popup__item"><input type="checkbox" readonly checked> Не все документы прикреплены</label>`;
+                }
+                if (list["explanation"]) {
+                    buf += `<div class="popup__textarea"><textarea readonly>${list["explanation"]}</textarea></div>`;
+                }
+
+                $('.popup__list').append(buf);
             } else {
                 showAlert("Ошибка при запросе данных!", "error");
             }
-        }, error: function (xhr, status, error) {
+        },
+        error: function () {
             showAlert("Ошибка при запросе данных!", "error");
-            console.error('AJAX Error:', status, error);
         }
-    })
-})
+    });
+});
+
 
 $('#send__application').on('click', function (e) {  
     e.preventDefault();

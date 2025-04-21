@@ -1039,7 +1039,6 @@ func getDocumentPaths(userID uint, docType string) []string {
 	}
 	return paths
 }
-
 func GetUserApplicationPage(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 
@@ -1059,22 +1058,26 @@ func GetUserApplicationPage(c *fiber.Ctx) error {
 		}
 	}
 
-	// Загружаем все заявки пользователя
+	// Загружаем заявки с причиной отказа
 	var applications []models.Application
-	if err := database.DB.Where("user_id = ?", userID).Find(&applications).Error; err != nil {
+	if err := database.DB.Preload("Decline").Where("user_id = ?", userID).Find(&applications).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки заявок")
 	}
 
-	// Формируем список для шаблона
+	// Структура для отображения в шаблоне
 	type ApplicationItem struct {
-		Number string
-		Status string
+		ID      uint
+		Number  string
+		Status  string
+		Decline *models.ApplicationDecline
 	}
 	var list []ApplicationItem
 	for _, app := range applications {
 		list = append(list, ApplicationItem{
-			Number: app.ApplicationNumber,
-			Status: strings.ToLower(app.Status), // <-- теперь корректно берёт статус
+			ID:      app.ID,
+			Number:  app.ApplicationNumber,
+			Status:  strings.ToLower(app.Status),
+			Decline: app.Decline,
 		})
 	}
 
@@ -1084,7 +1087,57 @@ func GetUserApplicationPage(c *fiber.Ctx) error {
 		"avatar":       avatarPath,
 		"id":           userID,
 		"path":         c.Path(),
-		"applications": list, // можно рендерить циклом в html
+		"applications": list,
+	})
+}
+
+func GetApplicationDeclineReason(c *fiber.Ctx) error {
+	type RequestBody struct {
+		ID uint `json:"id"`
+	}
+
+	var req RequestBody
+	if err := c.BodyParser(&req); err != nil || req.ID == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"message": "Некорректные или отсутствующие данные в запросе",
+		})
+	}
+
+	// Загружаем заявку с отказом
+	var app models.Application
+	if err := database.DB.Preload("Decline").
+		First(&app, req.ID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false,
+			"message": "Заявка не найдена",
+		})
+	}
+
+	if app.Decline == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"success": false,
+			"message": "Причины отказа не найдены",
+		})
+	}
+
+	// Разбираем причины
+	reasonMap := map[string]bool{}
+	for _, r := range strings.Split(app.Decline.Reasons, ",") {
+		reason := strings.TrimSpace(r)
+		if reason != "" {
+			reasonMap[reason] = true
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"list": fiber.Map{
+			"invalid_name":     reasonMap["invalid_name"],
+			"invalid_contacts": reasonMap["invalid_contacts"],
+			"no_documents":     reasonMap["no_documents"],
+			"explanation":      app.Decline.Explanation,
+		},
 	})
 }
 

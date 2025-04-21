@@ -639,22 +639,27 @@ $(document).on('submit', '#decline-forma', function (e) {
     }
 
     const reasons = [];
-
-    // Собираем все выбранные чекбоксы
     $('input[name="reason"]:checked').each(function () {
         reasons.push($(this).val());
     });
 
-    // Добавляем текстовое пояснение, если оно есть
     const explanation = $('textarea[name="explanation"]').val();
+    const appID = $('body').data('id'); // ВАЖНО!
 
     $.ajax({
         type: "POST",
         url: "/admin/student/decline",
         contentType: "application/json",
-        data: JSON.stringify({ reasons: reasons, explanation: explanation }),
+        data: JSON.stringify({
+            id: appID,
+            reasons: reasons,
+            explanation: explanation
+        }),
         success: function () {
             window.location.href = "/admin/user/application";
+        },
+        error: function (xhr) {
+            alert("Ошибка при отправке: " + xhr.responseText);
         }
     });
 });
@@ -866,7 +871,17 @@ $(document).ready(function () {
         e.preventDefault();
         openModal("decline_form");
     });
+});
+$(document).on("click", ".popup__decline-form", function (e) {
+    e.preventDefault();
+    $("#reason_decline").addClass("popup__open");
+    $("body").addClass("modal");
+});
 
+$(document).on("click", ".popup__close", function (e) {
+    e.preventDefault();
+    $("#reason_decline").removeClass("popup__open");
+    $("body").removeClass("modal");
 });
 
 $(document).on('click', 'body.exam-planning .profile__exam-link:contains("Назначить")', function (e) {

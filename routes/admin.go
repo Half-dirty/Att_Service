@@ -36,5 +36,7 @@ func RegisterAdminRoutes(app *fiber.App) {
 	adminGroup.Post("/api/exam/set", controllers.AdminSetTargetExam)
 	adminGroup.Get("/exam/show", controllers.AdminShowExam)
 	adminGroup.Post("/api/exam/cancel", controllers.AdminCancelExam)
+	adminGroup.Post("/api/application/decline", controllers.DeclineApplication)
+	adminGroup.Post("/student/decline", controllers.AdminDeclineStudent)
 
 }

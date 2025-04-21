@@ -118,3 +118,18 @@
   -webkit-box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
           box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
 }
+.profile__decline-button {
+  background-color: #ff4d4d;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s ease;
+  margin-left: 10px;
+}
+
+.profile__decline-button:hover {
+  background-color: #cc0000;
+}
