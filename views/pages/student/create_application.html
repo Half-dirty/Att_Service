@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../style/style.css">
+    <link rel="stylesheet" href="../../style/student/global.css">
+    <link rel="stylesheet" href="../../style/student/applications.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="header__container">
+                <a class="header__logo" href="/">
+                    <img class="header__logo-img" src="../../pictures/logo.svg" alt="Logo" />
+                    <div class="header__logo-text__container">
+                        <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
+                    </div>
+                </a>
+                <input type="checkbox" id="menu-toggle" class="header__menu-toggle">
+                <label for="menu-toggle" class="header__menu-icon">
+                    <span></span>
+                </label>
+
+                <div class="header__profile">
+                    <div class="header__profile-info">
+                        <div class="header__status">
+                            <h2>Статус:</h2>
+                            {{if or (eq .status "pending") (eq .status "")}}
+                            <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Отправить на
+                                проверку</a>
+                            {{end}}
+                            {{if eq .status "declined"}}
+                            <a href="#" class="header__status-button aproove_form" name="aproove_form">Отказ</a>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Отправить на
+                                проверку</a>
+                            {{end}}
+                            {{if eq .status "approved"}}
+                            <h2 class="header__status-text header__status-text--active">Подтвержден</h2>
+                            {{end}}
+                        </div>
+                        <div class="header__role">
+                            <h2>Роль:</h2>
+                            {{if eq .role "student"}}
+                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                            {{else if eq .role "examiner"}}
+                            <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                            {{end}}
+                        </div>
+                    </div>
+                    <img class="header__profile-avatar"
+                        src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}"
+                        alt="Profile Avatar">
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <nav class="menu">
+                <ul class="menu__list">
+                    <li class="menu__item {{if eq .path " /user/profile"}}menu__item--active{{end}}">
+                        <a href="/user/profile" class="menu__button">Личные данные</a>
+                    </li>
+                    <li class="menu__item {{if eq .path " /user/document"}}menu__item--active{{end}}">
+                        <a href="/user/document" type="button" class="menu__button">Документы</a>
+                    </li>
+                    {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
+                    <li class="menu__item menu__item--disabled">
+                        <a href="#" class="menu__button popup__link" name="aplication_form">Мои заявления</a>
+                    </li>
+                    {{end}}
+
+                    {{if eq .status "approved"}}
+                    <li class="menu__item {{if eq .path " /user/application"}}menu__item--active{{end}}">
+                        <a href="/user/application" class="menu__button">Мои заявления</a>
+                    </li>
+                    {{end}}
+                    <li class="menu__item {{if eq .path " /user/exams"}}menu__item--active{{end}}">
+                        <a href="#" class="menu__button">Назначенные экзамены</a>
+                    </li>
+                    <li class="menu__item {{if eq .path " /user/settings"}}menu__item--active{{end}}">
+                        <a href="#" class="menu__button">Настройки</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <section class="profile">
+                <form class="profile__body">
+                    <div class="profile__form">
+                        <div class="profile__column">
+                            <div class="profile__placeholder">
+                                <label class="profile__label" for="native_language">Родной язык:</label>
+                                <input class="profile__input" type="text" name="native_language" id="native_language"
+                                    value="{{.native_language}}" placeholder="">
+                            </div>
+                        </div>
+                        <div class="profile__column">
+                            <div class="profile__placeholder">
+                                <label class="profile__label" for="citizenship">Гражданство:</label>
+                                <input class="profile__input" type="text" name="citizenship" id="citizenship"
+                                    placeholder="" value="{{.citizenship}}">
+                            </div>
+                        </div>
+                        <div class="profile__column">
+                            <div class="profile__placeholder">
+                                <label class="profile__label" for="marital_status">Семейное положение:</label>
+                                <input class="profile__input" type="text" name="marital_status" id="marital_status"
+                                    value="{{.marital_status}}" placeholder="">
+                            </div>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="organization">Организация:</label>
+                            <input class="profile__input" type="text" name="organization" id="organization"
+                                value="{{.organization}}" placeholder="">
+                        </div>
+                        <div class="profile__column">
+                            <div class="profile__placeholder">
+                                <label class="profile__label" for="job_position">Занимая должность:</label>
+                                <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                    oninput="adjustHeight(this)" name="job_position"
+                                    id="job_position">{{.job_position}}</textarea>
+                            </div>
+                        </div>
+                        <div class="profile__column">
+                            <div class="profile__placeholder">
+                                <label class="profile__label" for="requested_category">Запрашиваемая категория
+                                    аттестации:</label>
+                                    <select class="profile__selector" name="requested_category"
+                                    id="requested_category">
+                                        {{range .requested_category}}
+                                        <option value="{{.}}" {{if eq . "examiner"}}selected{{end}}>{{.}}</option>
+                                        {{end}}
+                                    </select>
+                            </div>
+                        </div>
+                        <div class="profile__column">
+                            <div class="profile__placeholder">
+                                <label class="profile__label" for="basis_for_attestation">Основанием для аттестации на
+                                    указанную в заявлении квалификационную категорию считаю следующие результаты
+                                    работы:</label>
+                                <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                    oninput="adjustHeight(this)" name="basis_for_attestation"
+                                    id="basis_for_attestation">{{.basis_for_attestation}}</textarea>
+                            </div>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="existing_category">Имеющаяся в наличии квалификационная
+                                категория:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="existing_category"
+                                id="existing_category">{{.existing_category}}</textarea>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="existing_category_term">Срок действия имеющейся
+                                квалификационной категории:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="existing_category_term"
+                                id="existing_category_term">{{.existing_category_term}}</textarea>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="work_experience">Стаж работы (по специальности) полных
+                                лет:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="work_experience"
+                                id="work_experience">{{.work_experience}}</textarea>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="current_position_experience">Стаж работы в настоящей
+                                должности полных лет:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="current_position_experience"
+                                id="current_position_experience">{{.current_position_experience}}</textarea>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="awards_info">Наличие наград, званий, учёной степени,
+                                учёного звания:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="awards_info"
+                                id="awards_info">{{.awards_info}}</textarea>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="training_info">Сведения о повышении квалификации:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="training_info"
+                                id="training_info">{{.training_info}}</textarea>
+                        </div>
+                        <div class="profile__column">
+                            <label class="profile__label" for="memberships">Членство в организациях:</label>
+                            <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                oninput="adjustHeight(this)" name="memberships"
+                                id="memberships">{{.memberships}}</textarea>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="scan_diploma">Скан диплома об образовании:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="diplom_img" id="scan_diploma" accept="image/*" hidden
+                                    class="scan__input" data-id="diplom_img" multiple>
+                                <div id="diplom_img" name="diplom_img" class="image-preview">
+                                    {{range .diplom_images}}
+                                    <img src="{{.}}" alt="Диплом">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="scan_diploma_znii">Скан диплома о подготовке по жестовому
+                                языку:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="diplom_znii_img" id="scan_diploma_znii" accept="image/*" hidden
+                                    class="scan__input" data-id="diplom_znii_img" multiple>
+                                <div id="diplom_znii_img" name="diplom_znii_img" class="image-preview">
+                                    {{range .diplom_images}}
+                                    <img src="{{.}}" alt="Диплом ЦНИИ">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="passport_all">Сканы паспорта:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="passport_all" id="passport_all" accept="image/*" hidden
+                                    class="scan__input" multiple data-id="passport_all_preview">
+                                <div id="passport_all_preview" class="image-preview">
+                                    {{range .passport_images}}
+                                    <img src="{{.}}" alt="Паспорт">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="tk_book">Сканы трудовой книжки:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="tk_book" id="tk_book" accept="image/*" hidden
+                                    class="scan__input" multiple data-id="tk_book_preview">
+                                <div id="tk_book_preview" class="image-preview">
+                                    {{range .tk_book_images}}
+                                    <img src="{{.}}" alt="трудовая книжка">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="characteristic">Скан характеристики:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="characteristic" id="characteristic" accept="image/*" hidden
+                                    class="scan__input" multiple data-id="characteristic">
+                                <div id="characteristic" class="image-preview">
+                                    {{range .characteristic_images}}
+                                    <img src="{{.}}" alt="характеристика">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__confirm">
+                            <label class="profile__confirm-label" for="memberships">Согласие на обработку ваших
+                                персональных
+                                данных:</label>
+                            <input type="checkbox" class="profile__confirm-input" name="consent" id="consent"
+                                value="{{.consent}}" placeholder="">
+                        </div>
+                        {{if _ .status "approved"}}
+                        <div class="profile__save">
+                            <button type="submit" class="profile__save-button" id="send__application">Подать
+                                заявку</button>
+                        </div>
+                        {{end}}
+
+                        {{if eq .status "approved"}}
+                        <div class="profile__agree">
+                            <button type="submit" class="profile__agree-button" id="agree_application">Подтвердить
+                                заявку</button>
+                        </div>
+                        {{end}}
+                    </div>
+                </form>
+            </section>
+        </main>
+
+
+        <footer class="footer"></footer>
+    </div>
+    <div id="custom-alert" class="custom-alert hidden"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
+    <script src="../../scripts/student_script.js"></script>
+    <script src="../../scripts/admin_script.js"></script>
+</body>
+
+</html>

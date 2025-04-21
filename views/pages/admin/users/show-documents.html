@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/admin/global.css">
+    <link rel="stylesheet" href="../../../style/student/document_page.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <header class="header">
+            <div class="header__container">
+                <a class="header__logo" href="/">
+                    <img class="header__logo-img" src="../../../pictures/logo.svg" alt="Logo" />
+                    <div class="header__logo-text__container">
+                        <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
+                    </div>
+                </a>
+                <input type="checkbox" id="menu-toggle" class="header__menu-toggle">
+                <label for="menu-toggle" class="header__menu-icon">
+                    <span></span>
+                </label>
+
+                <div class="header__profile">
+                    <div class="header__profile-info">
+                        <div class="header__status">
+                            <h2>Статус:</h2>
+                            {{if or (eq .status "pending") (eq .status "")}}
+                            <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
+                            {{end}}
+                            {{if eq .status "approved"}}
+                            <h2 class="header__status-text header__status-text--active">Подтвержден</h2>
+                            {{end}}
+                        </div>
+                        <div class="header__role">
+                            <h2>Роль:</h2>
+                            <select class="header__role-select {{if eq .role "student"}}header__role-select--student{{else if eq .role "examiner"}}header__role-select--examiner{{end}}" id="role-select">
+                                <option value="student" {{if eq .role "student"}}selected{{end}}>Аттестуемый</option>
+                                <option value="examiner" {{if eq .role "examiner"}}selected{{end}}>Экзаменатор</option>
+                            </select>
+                        </div>                                                                                        
+                    </div>
+                    <img class="header__profile-avatar"
+                        src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}"
+                        alt="Profile Avatar">
+                </div>
+            </div>
+        </header>
+
+
+        <main class="main">
+            <nav class="menu">
+                <ul class="menu__list">
+                    <li class="menu__item">
+                        <a href="/admin/show/student/{{.id}}{{if .showButtons}}?source=application{{end}}"
+                            class="menu__button">Личные данные</a>
+                    </li>
+                    <li class="menu__item menu__item--active">
+                        <a href="/admin/show/document/{{.id}}{{if .showButtons}}?source=application{{end}}"
+                            class="menu__button">Документы</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <section class="profile">
+                <form class="" id="profile_form" enctype="multipart/form-data" method="POST" action="#">
+                    <div class="profile__selector">
+                        <h2 class="profile__selector-name">Паспорт</h2>
+                        <div class="profile__form">
+                            <div class="profile__row">
+                                <div class="profile__column">
+                                    <div class="profile__placeholder">
+                                        <label class="profile__label" for="passport_serial">Серия:</label>
+                                        <input class="profile__input" type="text" name="passport_serial"
+                                            id="passport_serial" placeholder="__-__" value={{.passport_serial}}
+                                            readonly>
+                                    </div>
+                                </div>
+                                <div class="profile__column">
+                                    <div class="profile__placeholder">
+                                        <label class="profile__label" for="unit_code">Код подразделения:</label>
+                                        <input class="profile__input" type="text" value={{.unit_code}} name="unit_code"
+                                            readonly id="unit_code" placeholder="___-___">
+                                    </div>
+                                </div>
+                                <div class="profile__column">
+                                    <div class="profile__placeholder">
+                                        <label class="profile__label" for="passport_num">№:</label>
+                                        <input class="profile__input" type="text" value={{.passport_num}}
+                                            name="passport_num" readonly id="passport_num" placeholder="______">
+                                    </div>
+                                </div>
+                                <div class="profile__column">
+                                    <div class="profile__placeholder">
+                                        <label class="profile__label" for="passport_date">Дата выдачи:</label>
+                                        <input class="profile__input" type="date" name="passport_date" readonly
+                                            id="passport_date" placeholder="__.__.____" value={{.passport_date}}>
+                                    </div>
+                                </div>
+                                <div class="profile__column">
+                                    <label class="profile__label" for="issue">Кем выдан:</label>
+                                    <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                        oninput="adjustHeight(this)" name="passport_issue" readonly
+                                        id="passport_issue">{{.passport_issue}}</textarea>
+                                </div>
+                            </div>
+                            <div class="profile__row">
+                                <div class="profile__column">
+                                    <label class="profile__label" for="bithday_date">Дата рождения:</label>
+                                    <input class="profile__input" type="date" value={{.bithday_date}}
+                                        name="bithday_date" readonly id="bithday_date" placeholder="__.__.____">
+                                </div>
+                                <div class="profile__column">
+                                    <label class="profile__label" for="born_place">Место рождения:</label>
+                                    <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                        oninput="adjustHeight(this)" name="born_place" id="born_place"
+                                        readonly>{{.born_place}}</textarea>
+                                </div>
+                                <div class="profile__column">
+                                    <label class="profile__label" for="registr_address">Адрес регистрации:</label>
+                                    <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
+                                        oninput="adjustHeight(this)" name="registr_address" readonly
+                                        id="registr_address">{{.registr_address}}</textarea>
+                                </div>
+                            </div>
+
+                            <div class="profile__row">
+                                <div class="profile__scan">
+                                    <label class="profile__label" for="passport_all">Сканы паспорта:</label>
+                                    <div class="uploadContainer profile__scan--input">
+                                        <input type="file" name="passport_all" id="passport_all" accept="image/*" hidden
+                                            class="scan__input" multiple readonly data-id="passport_all_preview">
+                                        <div id="passport_all_preview" class="image-preview">
+                                            {{range .passport_images}}
+                                            <img src="{{.}}" alt="Паспорт">
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__selector">
+                        <h2 class="profile__selector-name">Снилс</h2>
+                        <div class="profile__form">
+                            <div class="profile__row">
+                                <div class="profile__column">
+                                    <div class="profile__filler">
+                                        <label class="profile__label" for="snils_num">№:</label>
+                                        <input class="profile__input" type="text" readonly name="snils_num"
+                                            id="snils_num" placeholder="___-___-___ __" value={{.snils_num}}>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile__row">
+                                <div class="profile__column">
+                                    <div class="profile__scan">
+                                        <label class="profile__label" for="scan_snils">Скан:</label>
+                                        <div class="uploadContainer profile__scan--input">
+                                            <input type="file" name="snils_img" id="scan_snils" accept="image/*" hidden
+                                                class="scan__input" data-id="snils_img" multiple readonly>
+                                            <div id="snils_img" name="snils_img" class="image-preview">
+                                                {{range .snils_images}}
+                                                <img src="{{.}}" alt="СНИЛС">
+                                                {{end}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__selector">
+                        <h2 class="profile__selector-name">Диплом об основном образовании</h2>
+                        <div class="profile__form">
+                            <div class="profile__row">
+                                <div class="profile__column">
+                                    <div class="profile__filler">
+                                        <label class="profile__label" for="diplom_num">№:</label>
+                                        <input class="profile__input" type="text" readonly value={{.diplom_num}} name="diplom_num"
+                                            id="diplom_num" placeholder="_">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="profile__row">
+                                <div class="profile__column">
+                                    <div class="profile__scan">
+                                        <label class="profile__label" for="scan_diploma">Сканы:</label>
+                                        <div class="uploadContainer profile__scan--input">
+                                            <input type="file" name="diplom_img" id="scan_diploma" accept="image/*"
+                                                hidden class="scan__input" data-id="diplom_img" multiple readonly>
+                                            <div id="diplom_img" name="diplom_img" class="image-preview">
+                                                {{range .diplom_images}}
+                                                <img src="{{.}}" alt="Диплом">
+                                                {{end}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{if .showButtons}}
+                    <div class="profile__decision">
+                        <button type="button" class="profile__decision-button profile__decision-accept"
+                            id="decision-accept">Подтвердить</button>
+                        <button type="button" class="profile__decision-button profile__decision-decline"
+                            id="decision-decline">Отказать</button>
+                    </div>
+                    {{end}}
+                </form>
+            </section>
+        </main>
+        <footer>
+
+        </footer>
+    </div>
+</body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
+<script src="../../../scripts/student_script.js"></script>
+<script src="../../../scripts/admin_script.js"></script>
+
+</html>
