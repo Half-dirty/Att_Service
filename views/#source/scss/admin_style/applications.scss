@@ -1,0 +1,93 @@
+.profile {
+    // height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    &__title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    &__application {
+        &-list {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            border-radius: 5px;
+        }
+
+        &-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+
+            &:hover {
+                border: 1px solid rgb(0, 0, 0);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+
+            &:nth-child(even) {
+                background-color: #ececec;
+            }
+        }
+
+        &-info {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px;
+        }
+
+        &-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 5px;
+            background-color: #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+
+            &-img {
+                width: 100%;
+                height: 100%;
+                border-radius: 5px;
+            }
+        }
+
+        &-name {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        &-buttons {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+
+            a {
+                text-decoration: none;
+                color: #000;
+                padding: 10px;
+                border-radius: 5px;
+                background-color: #2f68d5;
+                color: #fff;
+                transition: background-color 0.3s ease;
+
+                &:hover {
+                    background-color: #214994;
+                    box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
+                }
+            }
+        }
+    }
+}

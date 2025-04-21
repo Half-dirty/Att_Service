@@ -55,8 +55,13 @@
                             <div class="profile__exam-name">
                                 <h2>Экзамен от {{.Date}}</h2>
                             </div>
-                            <div class="profile__link">
-                                <a href="/admin/exam/show/{{.ID}}" class="profile__exam-link">Посмотреть экзамен</a>
+                            <div class="profile__exam-buttons_menu">
+                                <div class="profile__link">
+                                    <button class="profile__exam-link">Назначить</button>
+                                </div>
+                                <div class="profile__link">
+                                    <a href="/admin/exam/show/{{.ID}}" class="profile__exam-link">Посмотреть экзамен</a>
+                                </div>
                             </div>
                         </div>
                         {{end}}

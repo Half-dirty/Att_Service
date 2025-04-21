@@ -31,11 +31,13 @@
                             <h2>Статус:</h2>
                             {{if or (eq .status "pending") (eq .status "")}}
                             <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
-                            <a href="#" class="header__status-button popup__link" name="aplication_form">Отправить на проверку</a>                            
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Отправить на
+                                проверку</a>
                             {{end}}
                             {{if eq .status "declined"}}
                             <a href="#" class="header__status-button aproove_form" name="aproove_form">Отказ</a>
-                            <a href="#" class="header__status-button popup__link" name="aplication_form">Отправить на проверку</a>
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Отправить на
+                                проверку</a>
                             {{end}}
                             {{if eq .status "approved"}}
                             <h2 class="header__status-text header__status-text--active">Подтвержден</h2>
@@ -44,13 +46,15 @@
                         <div class="header__role">
                             <h2>Роль:</h2>
                             {{if eq .role "student"}}
-                                <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
                             {{else if eq .role "examiner"}}
-                                <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                            <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
                             {{end}}
-                        </div>                        
+                        </div>
                     </div>
-                    <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
+                    <img class="header__profile-avatar"
+                        src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}"
+                        alt="Profile Avatar">
                 </div>
             </div>
         </header>
@@ -58,10 +62,10 @@
         <main class="main">
             <nav class="menu">
                 <ul class="menu__list">
-                    <li class="menu__item {{if eq .path "/user/profile"}}menu__item--active{{end}}">
+                    <li class="menu__item {{if eq .path " /user/profile"}}menu__item--active{{end}}">
                         <a href="/user/profile" class="menu__button">Личные данные</a>
                     </li>
-                    <li class="menu__item {{if eq .path "/user/document"}}menu__item--active{{end}}">
+                    <li class="menu__item {{if eq .path " /user/document"}}menu__item--active{{end}}">
                         <a href="/user/document" type="button" class="menu__button">Документы</a>
                     </li>
                     {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
@@ -71,18 +75,21 @@
                     {{end}}
 
                     {{if eq .status "approved"}}
-                    <li class="menu__item {{if eq .path "/user/application"}}menu__item--active{{end}}">
+                    <li class="menu__item {{if eq .path " /user/application"}}menu__item--active{{end}}">
                         <a href="/user/application" class="menu__button">Мои заявления</a>
                     </li>
                     {{end}}
-                    <li class="menu__item {{if eq .path "/user/settings"}}menu__item--active{{end}}">
+                    <li class="menu__item {{if eq .path " /user/exams"}}menu__item--active{{end}}">
+                        <a href="#" class="menu__button">Назначенные экзамены</a>
+                    </li>
+                    <li class="menu__item {{if eq .path " /user/settings"}}menu__item--active{{end}}">
                         <a href="#" class="menu__button">Настройки</a>
                     </li>
                 </ul>
             </nav>
 
             <section class="profile">
-                <div class="profile__body">
+                <form class="profile__body">
                     <div class="profile__form">
                         <div class="profile__column">
                             <div class="profile__placeholder">
@@ -122,9 +129,12 @@
                             <div class="profile__placeholder">
                                 <label class="profile__label" for="requested_category">Запрашиваемая категория
                                     аттестации:</label>
-                                <textarea class="profile__textarea profile__textarea-auto_expand" rows="1"
-                                    oninput="adjustHeight(this)" name="requested_category"
-                                    id="requested_category">{{.requested_category}}</textarea>
+                                    <select class="profile__selector" name="requested_category"
+                                    id="requested_category">
+                                        {{range .requested_category}}
+                                        <option value="{{.}}" {{if eq . "examiner"}}selected{{end}}>{{.}}</option>
+                                        {{end}}
+                                    </select>
                             </div>
                         </div>
                         <div class="profile__column">
@@ -186,6 +196,77 @@
                         </div>
                     </div>
                     <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="scan_diploma">Скан диплома об образовании:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="diplom_img" id="scan_diploma" accept="image/*" hidden
+                                    class="scan__input" data-id="diplom_img" multiple>
+                                <div id="diplom_img" name="diplom_img" class="image-preview">
+                                    {{range .diplom_images}}
+                                    <img src="{{.}}" alt="Диплом">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="scan_diploma_znii">Скан диплома о подготовке по жестовому
+                                языку:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="diplom_znii_img" id="scan_diploma_znii" accept="image/*" hidden
+                                    class="scan__input" data-id="diplom_znii_img" multiple>
+                                <div id="diplom_znii_img" name="diplom_znii_img" class="image-preview">
+                                    {{range .diplom_images}}
+                                    <img src="{{.}}" alt="Диплом ЦНИИ">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="passport_all">Сканы паспорта:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="passport_all" id="passport_all" accept="image/*" hidden
+                                    class="scan__input" multiple data-id="passport_all_preview">
+                                <div id="passport_all_preview" class="image-preview">
+                                    {{range .passport_images}}
+                                    <img src="{{.}}" alt="Паспорт">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="tk_book">Сканы трудовой книжки:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="tk_book" id="tk_book" accept="image/*" hidden
+                                    class="scan__input" multiple data-id="tk_book_preview">
+                                <div id="tk_book_preview" class="image-preview">
+                                    {{range .tk_book_images}}
+                                    <img src="{{.}}" alt="трудовая книжка">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
+                        <div class="profile__scan">
+                            <label class="profile__label" for="characteristic">Скан характеристики:</label>
+                            <div class="uploadContainer profile__scan--input">
+                                <input type="file" name="characteristic" id="characteristic" accept="image/*" hidden
+                                    class="scan__input" multiple data-id="characteristic">
+                                <div id="characteristic" class="image-preview">
+                                    {{range .characteristic_images}}
+                                    <img src="{{.}}" alt="характеристика">
+                                    {{end}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile__row">
                         <div class="profile__confirm">
                             <label class="profile__confirm-label" for="memberships">Согласие на обработку ваших
                                 персональных
@@ -193,11 +274,21 @@
                             <input type="checkbox" class="profile__confirm-input" name="consent" id="consent"
                                 value="{{.consent}}" placeholder="">
                         </div>
+                        {{if _ .status "approved"}}
                         <div class="profile__save">
                             <button type="submit" class="profile__save-button" id="send__application">Подать
                                 заявку</button>
                         </div>
+                        {{end}}
+
+                        {{if eq .status "approved"}}
+                        <div class="profile__agree">
+                            <button type="submit" class="profile__agree-button" id="agree_application">Подтвердить
+                                заявку</button>
+                        </div>
+                        {{end}}
                     </div>
+                </form>
             </section>
         </main>
 
@@ -209,6 +300,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
     <script src="../../scripts/student_script.js"></script>
+    <script src="../../scripts/admin_script.js"></script>
 </body>
 
 </html>

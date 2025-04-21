@@ -731,55 +731,22 @@ $('.popup__decline-form').on('click', function (e) {
     })
 })
 
-$('#send__application').on('click', function (e) {
+$('#send__application').on('click', function (e) {  
     e.preventDefault();
-
-    let native_language = $('#native_language').val();
-    let citizenship = $('#citizenship').val();
-    let marital_status = $('#marital_status').val();
-    let organization = $('#organization').val();
-    let job_position = $('#job_position').val();
-    let requested_category = $('#requested_category').val();
-    let basis_for_attestation = $('#basis_for_attestation').val();
-    let existing_category = $('#existing_category').val();
-    let existing_category_term = $('#existing_category_term').val();
-    let work_experience = $('#work_experience').val();
-    let current_position_experience = $('#current_position_experience').val();
-    let awards_info = $('#awards_info').val();
-    let training_info = $('#training_info').val();
-    let memberships = $('#memberships').val();
-    let consent = $('#consent').prop('checked');
-
-    if (!consent) {
-        showAlert("Нам нужно ваше согласие на обработку данных", "error");
-        return;
+    let formData = new FormData(this);
+    for (const [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
     }
 
     $.ajax({
         type: "POST",
         url: "/user/create-application",
-        contentType: "application/json",
-        data: JSON.stringify({
-            native_language: native_language,
-            citizenship: citizenship,
-            marital_status: marital_status,
-            organization: organization,
-            job_position: job_position,
-            requested_category: requested_category,
-            basis_for_attestation: basis_for_attestation,
-            existing_category: existing_category,
-            existing_category_term: existing_category_term,
-            work_experience: work_experience,
-            current_position_experience: current_position_experience,
-            awards_info: awards_info,
-            training_info: training_info,
-            memberships: memberships,
-            consent: consent
-        }),
+        data: formData,
+        processData: false,
+        contentType: false,
         success: function (res) {
             if (res.success) {
                 showAlert("Данные успешно сохранены!");
-                window.location.href = "/user/application";
             } else {
                 showAlert("Ошибка при сохранении данных!", "error");
             }
@@ -789,7 +756,67 @@ $('#send__application').on('click', function (e) {
             console.error('AJAX Error:', status, error);
         }
     })
-})
+});
+
+// $('#send__application').on('click', function (e) {
+//     e.preventDefault();
+
+//     let native_language = $('#native_language').val();
+//     let citizenship = $('#citizenship').val();
+//     let marital_status = $('#marital_status').val();
+//     let organization = $('#organization').val();
+//     let job_position = $('#job_position').val();
+//     let requested_category = $('#requested_category').val();
+//     let basis_for_attestation = $('#basis_for_attestation').val();
+//     let existing_category = $('#existing_category').val();
+//     let existing_category_term = $('#existing_category_term').val();
+//     let work_experience = $('#work_experience').val();
+//     let current_position_experience = $('#current_position_experience').val();
+//     let awards_info = $('#awards_info').val();
+//     let training_info = $('#training_info').val();
+//     let memberships = $('#memberships').val();
+//     let consent = $('#consent').prop('checked');
+
+//     if (!consent) {
+//         showAlert("Нам нужно ваше согласие на обработку данных", "error");
+//         return;
+//     }
+
+//     $.ajax({
+//         type: "POST",
+//         url: "/user/create-application",
+//         contentType: "application/json",
+//         data: JSON.stringify({
+//             native_language: native_language,
+//             citizenship: citizenship,
+//             marital_status: marital_status,
+//             organization: organization,
+//             job_position: job_position,
+//             requested_category: requested_category,
+//             basis_for_attestation: basis_for_attestation,
+//             existing_category: existing_category,
+//             existing_category_term: existing_category_term,
+//             work_experience: work_experience,
+//             current_position_experience: current_position_experience,
+//             awards_info: awards_info,
+//             training_info: training_info,
+//             memberships: memberships,
+//             consent: consent
+//         }),
+//         success: function (res) {
+//             if (res.success) {
+//                 showAlert("Данные успешно сохранены!");
+//                 window.location.href = "/user/application";
+//             } else {
+//                 showAlert("Ошибка при сохранении данных!", "error");
+//             }
+//         },
+//         error: function (xhr, status, error) {
+//             showAlert("Ошибка при сохранении данных!", "error");
+//             console.error('AJAX Error:', status, error);
+//         }
+//     })
+// })
 
 
 $('.aproove_form').on('click', function (e) {

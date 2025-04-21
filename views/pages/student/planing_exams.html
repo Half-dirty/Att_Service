@@ -75,7 +75,7 @@
                         <a href="/user/application" class="menu__button">Мои заявления</a>
                     </li>
                     {{end}}
-                    <li class="menu__item {{if eq .path "/user/exams"}}menu__item--active{{end}}">
+                    <li class="menu__item menu__item--active">
                         <a href="#" class="menu__button">Назначенные экзамены</a>
                     </li>
                     <li class="menu__item {{if eq .path "/user/settings"}}menu__item--active{{end}}">
@@ -86,26 +86,35 @@
 
             <section class="profile">
                 <div class="profile__body">
-                    <div class="profile__create">
-                        <h2 class="profile__create-text">Создать заявку на аттестацию</h2>
-                        <a href="/user/create-application" class="profile__create-button">Создать</a>
-                    </div>
                     <div class="profile__application-list">
                         <div class="profile__application-item profile__application-item--active">
-                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <h2 class="profile__application-text profile__application--aproved">Подтверждено</h2>
+                            <h2 class="profile__application-text">Заявка на аттестацию от ....</h2>
+                            <div class="profile__application-info">
+                                {{if eq .status "examiner"}}
+                                <a href="" class="profile__application-link">Ссылка на экзамен</a>
+                                {{end}}
+                                <h2 class="profile__application-text">Дата экзамена:</h2>
+                                <h2 class="profile__application-date">----</h2>
+                            </div>
                         </div>
                         <div class="profile__application-item">
-                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <h2 class="profile__application-text profile__application--waiting">Ожидает подтверждения
-                            </h2>
+                            <h2 class="profile__application-text">Заявка на аттестацию от ...</h2>
+                            <div class="profile__application-info">
+                                {{if eq .status "examiner"}}
+                                <a href="" class="profile__application-link">Ссылка на экзамен</a>
+                                {{end}}
+                                <h2 class="profile__application-text">Дата экзамена:</h2>
+                                <h2 class="profile__application-date">----</h2>
+                            </div>
                         </div>
                         <div class="profile__application-item">
-                            <h2 class="profile__application-text">Заявка на аттестацию</h2>
-                            <div class="profile__application-solution">
-                                <h2 class="profile__application-text profile__application--decline">Отклонено</h2>
-                                <a href="#" class="profile__application-button popup__decline-form"
-                                    name="reason_decline">Причина</a>
+                            <h2 class="profile__application-text">Заявка на аттестацию от...</h2>
+                            <div class="profile__application-info">
+                                {{if eq .status "examiner"}}
+                                <a href="" class="profile__application-link">Ссылка на экзамен</a>
+                                {{end}}
+                                <h2 class="profile__application-text">Дата экзамена:</h2>
+                                <h2 class="profile__application-date">----</h2>
                             </div>
                         </div>
                     </div>
