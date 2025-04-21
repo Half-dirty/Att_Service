@@ -78,8 +78,11 @@
                             </div>
                             <div class="profile__user-selector">
                                 <ul class="profile__user-menu">
-                                    <li><a href="/admin/show/student/{{.ID}}" class="profile__user-link">Посмотреть
-                                            аккаунт</a></li>
+                                    <li><button
+                                        class="profile__user-link open-student-profile"
+                                        data-id="{{.ID}}"
+                                        data-source="application">Посмотреть</button>                                      
+                                    </li>
                                     <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить
                                             аккаунт</button></li>
                                 </ul>

@@ -42,9 +42,11 @@
                                 <option value="student" {{if eq .role "student"}}selected{{end}}>Аттестуемый</option>
                                 <option value="examiner" {{if eq .role "examiner"}}selected{{end}}>Экзаменатор</option>
                             </select>
-                        </div>                                                                                        
+                        </div> 
                     </div>
-                    <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
+                    <img class="header__profile-avatar"
+                        src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}"
+                        alt="Profile Avatar">
                 </div>
             </div>
         </header>
@@ -53,20 +55,21 @@
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item menu__item--active">
-                        <a href="/admin/show/student/{{.id}}{{if .showButtons}}?source=application{{end}}"
-                            class="menu__button">Личные данные</a>
+                        <a href="/admin/student/profile" class="menu__button">Личные данные</a>
                     </li>
                     <li class="menu__item">
-                        <a href="/admin/show/document/{{.id}}{{if .showButtons}}?source=application{{end}}"
-                            class="menu__button">Документы</a>
+                        <a href="/admin/student/documents" class="menu__button">Документы</a>
                     </li>
                 </ul>
             </nav>
 
+
             <section class="profile">
                 <div class="profile__body">
                     <div class="profile__header">
-                        <img class="profile__avatar" src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}" alt="User Avatar">
+                        <img class="profile__avatar"
+                            src="{{if .avatar}}{{.avatar}}{{else}}../../../pictures/Generic avatar.png{{end}}"
+                            alt="User Avatar">
                     </div>
                     <div class="profile__form">
                         <div class="profile__table">
@@ -89,13 +92,16 @@
                                     <label class="profile__label" for="surname">Фамилия:</label>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" type="text" value="{{.surname_in_ip}}" id="surname_in_ip" readonly>
+                                    <input class="profile__input" type="text" value="{{.surname_in_ip}}"
+                                        id="surname_in_ip" readonly>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" type="text" value="{{.surname_in_rp}}" id="surname_in_rp" readonly>
+                                    <input class="profile__input" type="text" value="{{.surname_in_rp}}"
+                                        id="surname_in_rp" readonly>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" type="text" value="{{.surname_in_dp}}" id="surname_in_dp" readonly>
+                                    <input class="profile__input" type="text" value="{{.surname_in_dp}}"
+                                        id="surname_in_dp" readonly>
                                 </div>
                             </div>
                             <div class="profile__row">
@@ -103,13 +109,16 @@
                                     <label class="profile__label" for="name">Имя:</label>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" type="text" value="{{.name_in_ip}}" id="name_in_ip" readonly>
+                                    <input class="profile__input" type="text" value="{{.name_in_ip}}" id="name_in_ip"
+                                        readonly>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" type="text" value="{{.name_in_rp}}" id="name_in_rp" readonly>
+                                    <input class="profile__input" type="text" value="{{.name_in_rp}}" id="name_in_rp"
+                                        readonly>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" type="text" value="{{.name_in_dp}}" id="name_in_dp" readonly>
+                                    <input class="profile__input" type="text" value="{{.name_in_dp}}" id="name_in_dp"
+                                        readonly>
                                 </div>
                             </div>
                             <div class="profile__row">
@@ -117,13 +126,16 @@
                                     <label class="profile__label" for="lastname">Отчество:</label>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" value="{{.lastname_in_ip}}" type="text" id="lastname_in_ip" readonly>
+                                    <input class="profile__input" value="{{.lastname_in_ip}}" type="text"
+                                        id="lastname_in_ip" readonly>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" value="{{.lastname_in_rp}}" type="text" id="lastname_in_rp" readonly>
+                                    <input class="profile__input" value="{{.lastname_in_rp}}" type="text"
+                                        id="lastname_in_rp" readonly>
                                 </div>
                                 <div class="profile__column">
-                                    <input class="profile__input" value="{{.lastname_in_dp}}" type="text" id="lastname_in_dp" readonly>
+                                    <input class="profile__input" value="{{.lastname_in_dp}}" type="text"
+                                        id="lastname_in_dp" readonly>
                                 </div>
                             </div>
                         </div>
@@ -134,7 +146,8 @@
                                 <div class="profile__radio">
                                     <div class="profile__radio-button">
                                         {{if eq .sex "male"}}
-                                        <input type="radio" class="profile__input--radio" id="male" disabled checked name="sex">
+                                        <input type="radio" class="profile__input--radio" id="male" disabled checked
+                                            name="sex">
                                         <label for="male">Мужской</label>
                                         {{end}}
                                         {{if ne .sex "male"}}
@@ -149,7 +162,8 @@
                                         <label for="female">Женский</label>
                                         {{end}}
                                         {{if ne .sex "female"}}
-                                        <input type="radio" class="profile__input--radio" disabled id="female" name="sex">
+                                        <input type="radio" class="profile__input--radio" disabled id="female"
+                                            name="sex">
                                         <label for="female">Женский</label>
                                         {{end}}
                                     </div>

@@ -12,12 +12,29 @@ import (
 	"os"
 
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
+
+func AdminSetTargetStudent(c *fiber.Ctx) error {
+	var body struct {
+		ID     uint   `json:"id"`
+		Source string `json:"source"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"success": false,
+			"error":   "invalid request",
+		})
+	}
+
+	c.Locals("targetStudentID", body.ID)
+	c.Locals("source", body.Source)
+
+	return c.JSON(fiber.Map{"success": true})
+}
 
 // AdminPage возвращает главную страницу администратора (pages/admin_page.html)
 func AdminPage(c *fiber.Ctx) error {
@@ -36,15 +53,9 @@ func AdminChangeUserRole(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Неверный формат данных"})
 	}
 
-	// Получаем ID пользователя из URL
-	idParam := c.Query("id") // /admin/change_role?id=123
-	if idParam == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "ID пользователя не указан"})
-	}
-
-	// Парсим id
-	userID, err := strconv.Atoi(idParam)
-	if err != nil {
+	userIDRaw := c.Locals("targetStudentID")
+	userID, ok := userIDRaw.(uint)
+	if !ok || userID == 0 {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Некорректный ID"})
 	}
 
@@ -62,11 +73,7 @@ func AdminChangeUserRole(c *fiber.Ctx) error {
 }
 
 func AdminDeclineStudent(c *fiber.Ctx) error {
-	// Получение ID студента
-	studentID, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "invalid id"})
-	}
+	studentID := c.Locals("targetStudentID").(uint)
 
 	var student models.User
 	if err := database.DB.First(&student, studentID).Error; err != nil {
@@ -267,11 +274,7 @@ func AdminShowStudentProfile(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
 	}
 
-	// Получаем ID студента из URL
-	studentID, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Некорректный ID")
-	}
+	studentID := c.Locals("targetStudentID").(uint)
 
 	// Загружаем пользователя
 	var student models.User
@@ -295,16 +298,10 @@ func AdminShowStudentProfile(c *fiber.Ctx) error {
 		avatar = "../pictures/Generic avatar.png"
 	}
 
-	source := c.Query("source")
+	source := c.Locals("source")
 	showButtons := false
 
-	// если query-параметра нет — значит это первое открытие
-	if source == "" {
-		referer := c.Get("Referer")
-		if strings.Contains(referer, "/admin/user/application") || strings.Contains(referer, "/admin/select/application") {
-			showButtons = true
-		}
-	} else if source == "application" {
+	if source == "application" {
 		showButtons = true
 	}
 
@@ -404,11 +401,7 @@ func AdminShowStudentDocuments(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
 	}
 
-	// ID студента из URL
-	studentID, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString("Некорректный ID")
-	}
+	studentID := c.Locals("targetStudentID").(uint)
 
 	// Получаем пользователя, паспорт, диплом
 	var student models.User
@@ -441,17 +434,10 @@ func AdminShowStudentDocuments(c *fiber.Ctx) error {
 		}
 	}
 
-	// Проверка на источник запроса
-	source := c.Query("source")
+	source := c.Locals("source")
 	showButtons := false
 
-	// если query-параметра нет — значит это первое открытие
-	if source == "" {
-		referer := c.Get("Referer")
-		if strings.Contains(referer, "/admin/user/application") || strings.Contains(referer, "/admin/select/application") {
-			showButtons = true
-		}
-	} else if source == "application" {
+	if source == "application" {
 		showButtons = true
 	}
 
@@ -479,14 +465,7 @@ func AdminShowStudentDocuments(c *fiber.Ctx) error {
 }
 
 func AdminConfirmStudent(c *fiber.Ctx) error {
-	// Получаем ID студента из URL-параметра
-	studentID, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"success": false,
-			"error":   "Некорректный ID пользователя",
-		})
-	}
+	studentID := c.Locals("targetStudentID").(uint)
 
 	// Проверка прав администратора
 	adminID := c.Locals("userID").(uint)
@@ -897,16 +876,11 @@ func AdminUserList(c *fiber.Ctx) error {
 }
 
 func AdminDeleteStudent(c *fiber.Ctx) error {
-	idParam := c.Params("id")
-	if idParam == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "ID не указан"})
+	idRaw := c.Locals("targetStudentID")
+	userID, ok := idRaw.(uint)
+	if !ok || userID == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Некорректный ID"})
 	}
-
-	id, err := strconv.ParseUint(idParam, 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"success": false, "error": "Неверный ID"})
-	}
-	userID := uint(id)
 
 	var user models.User
 	if err := database.DB.First(&user, userID).Error; err != nil {

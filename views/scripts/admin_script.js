@@ -163,24 +163,53 @@ $(document).on('click', '.delete-student', function(e) {
         return;
     }
 
-    let id = $(this).data('id');
-
     $.ajax({
-        type: "POST",
-        url: `/admin/delete/student/${id}`,
-        success: function (res) {
-            if (res.success) {
-                showAlert("Пользователь удалён!");
-                location.reload(); // обновить список
-            } else {
-                showAlert("Ошибка при удалении!", "error");
-            }
-        },
-        error: function () {
-            showAlert("Ошибка при удалении!", "error");
-        }
-    });
+		type: "POST",
+		url: "/admin/api/student",
+		contentType: "application/json",
+		data: JSON.stringify({ id: id }),
+		success: function () {
+			// Затем удаляем
+			$.ajax({
+				type: "POST",
+				url: "/admin/student/delete",
+				contentType: "application/json",
+				data: JSON.stringify({}),
+				success: function () {
+					location.reload();
+				},
+				error: function () {
+					showAlert("Ошибка при удалении пользователя", "error");
+				}
+			});
+		},
+		error: function () {
+			showAlert("Ошибка при установке пользователя", "error");
+		}
+	});
 });
+
+
+$(document).on('click', '.open-student-profile', function (e) {
+    e.preventDefault();
+  
+    const id = $(this).data('id');
+    const source = $(this).data('source') || "";
+  
+    $.ajax({
+      type: "POST",
+      url: "/admin/api/student",
+      contentType: "application/json",
+      data: JSON.stringify({ id: id, source: source }),
+      success: function () {
+        window.location.href = "/admin/student/profile"; 
+      },
+      error: function () {
+        showAlert("Ошибка при открытии профиля", "error");
+      }
+    });
+  });
+  
 
 
 //--фильтр по ролям
@@ -221,10 +250,8 @@ $('#users_role').on('change', function (e) {
                         '</div>' +
                         '<div class="profile__user-selector">' +
                         '    <ul class="profile__user-menu">' +
-                        '        <li><a href="/admin/show/student/' + user['id'] + '"' +
-                        '                class="profile__user-link">Посмотреть аккаунт</a></li>' +
-                        '        <li><a href="/admin/delete/student/' + user['id'] + '"' +
-                        '                class="profile__user-link">Удалить аккаунт</a></li>' +
+                        '        <li><button class="profile__user-link open-student-profile" data-id="{{.ID}}">Посмотреть аккаунт</button></li>' +
+                        '        <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>' +
                         '    </ul>' +
                         '</div>' +
                         '</div>'
@@ -324,8 +351,8 @@ function generateUserHTML(user) {
         '</div>' +
         '<div class="profile__user-selector">' +
         '    <ul class="profile__user-menu">' +
-        '        <li><a href="/admin/show/student/' + user['id'] + '" class="profile__user-link">Посмотреть аккаунт</a></li>' +
-        '        <li><a href="/admin/delete/student/' + user['id'] + '" class="profile__user-link">Удалить аккаунт</a></li>' +
+        '        <li><button class="profile__user-link open-student-profile" data-id="{{.ID}}" data-source="application">Посмотреть аккаунт</button></li>' +
+        '        <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>' +
         '    </ul>' +
         '</div>' +
         '</div>';
@@ -385,10 +412,8 @@ $('#users_role_application').on('change', function (e) {
                         '</div>' +
                         '<div class="profile__user-selector">' +
                         '    <ul class="profile__user-menu">' +
-                        '        <li><a href="/admin/show/student/' + user['id'] + '"' +
-                        '                class="profile__user-link">Посмотреть аккаунт</a></li>' +
-                        '        <li><a href="/admin/delete/student/' + user['id'] + '"' +
-                        '                class="profile__user-link">Удалить аккаунт</a></li>' +
+                        '        <li><button class="profile__user-link open-student-profile" data-id="{{.ID}}" data-source="application">Посмотреть аккаунт</button></li>' +
+                        '        <li><button class="profile__user-link delete-student" data-id="{{.ID}}">Удалить аккаунт</button></li>' +
                         '    </ul>' +
                         '</div>' +
                         '</div>'
@@ -419,69 +444,50 @@ $('#role-select').on('change', function (e) {
 
     let role = $(this).val();
 
-    // удаляем старые классы цвета
-    $(this).removeClass('header__role-select--student header__role-select--examiner');
+    // Обновляем класс для визуального оформления
+    $(this)
+        .removeClass('header__role-select--student header__role-select--examiner')
+        .addClass(`header__role-select--${role}`);
 
-    // добавляем новый класс цвета
-    if (role === "examiner") {
-        $(this).addClass('header__role-select--examiner');
-    } else {
-        $(this).addClass('header__role-select--student');
-    }
-
-    // Получаем id пользователя из URL
-    const pathParts = window.location.pathname.split('/');
-    const id = pathParts[4];
-
-    // Отправляем ajax на сервер для сохранения роли
+    // Безопасный AJAX-запрос без использования ID в URL
     $.ajax({
         type: "POST",
-        url: `/admin/change_role?id=${id}`,
+        url: "/admin/change_role", // безопасный путь
         contentType: "application/json",
         data: JSON.stringify({ role: role }),
         success: function (res) {
             if (res.success) {
-                showAlert("Данные успешно сохранены!");
+                showAlert("Роль успешно обновлена!");
             } else {
-                showAlert("Ошибка при сохранении данных!", "error");
+                showAlert("Ошибка при обновлении роли!", "error");
             }
         },
         error: function (xhr, status, error) {
-            showAlert("Ошибка при сохранении данных!", "error");
+            showAlert("Ошибка при обновлении роли!", "error");
             console.error('AJAX Error:', status, error);
         }
-    })
+    });
 });
+
 
 
 
 //--подтвердить профиль
 $('#decision-accept').on('click', function (e) {
-    e.preventDefault();
-
-    const pathParts = window.location.pathname.split('/');
-    const id = pathParts[4];
-    if (!id) {
-        alert("ID пользователя не найден");
-        return;
-    }
-
-    $.ajax({
-        type: "POST",
-        url: `/admin/student/confirm/${id}`,
-        contentType: "application/json",
-        data: JSON.stringify({ confirm: true }),
-        success: function (res) {
-            if (res.success) {
-                window.location.href = "/admin/user/application";
-            } else {
-                alert("Не удалось подтвердить пользователя");
-            }
-        },
-        error: function () {
-            alert("Ошибка при подтверждении");
-        }
-    });
+	e.preventDefault();
+	$.ajax({
+		type: "POST",
+		url: "/admin/student/confirm",
+		contentType: "application/json",
+		data: JSON.stringify({ confirm: true }),
+		success: function (res) {
+			if (res.success) {
+				window.location.href = "/admin/user/application";
+			} else {
+				showAlert("Не удалось подтвердить пользователя", "error");
+			}
+		}
+	});
 });
 
 
@@ -526,30 +532,15 @@ $(document).on('submit', '#decline-forma', function (e) {
         formData['explanation'] = explanation;
     }
 
-    const pathParts = window.location.pathname.split('/');
-    const id = pathParts[4];
-    if (!id) {
-        alert("ID пользователя не найден");
-        return;
-    }
-
     $.ajax({
         type: "POST",
-        url: `/admin/decline/${id}`,
-        cache: false,
-        processData: false,
+        url: "/admin/student/decline", // безопасный путь
         contentType: "application/json",
-        data: JSON.stringify(formData),
-        dataType: 'json',
-        success: function (res) {
-            if (res['success']) {
-                return window.location.href = "/admin/user/application";
-            }
-        }, error: function (xhr, status, error) {
-            showAlert("Ошибка при сохранении данных!", "error");
-            console.error('AJAX Error:', status, error);
+        data: JSON.stringify({ reasons: reasons, explanation: explanation }),
+        success: function () {
+            window.location.href = "/admin/user/application";
         }
-    });
+    });    
 });
 
 

@@ -13,19 +13,19 @@ func RegisterAdminRoutes(app *fiber.App) {
 	// Главная страница админа – admin_page.html
 	adminGroup.Get("/", controllers.AdminPage)
 	adminGroup.Get("/user/list", controllers.AdminUserList)
-	adminGroup.Get("/show/student/:id", controllers.AdminShowStudentProfile)
 	adminGroup.Post("/select/application", controllers.AdminSelectApplicationUsers)
 	adminGroup.Post("/search/all", controllers.AdminSearchAll)
 	adminGroup.Get("/user/application", controllers.AdminUserApplication)
 	adminGroup.Post("/select", controllers.AdminSelectUsersByRole)
-	adminGroup.Get("/show/document/:id", controllers.AdminShowStudentDocuments)
-	adminGroup.Post("/student/confirm/:id", controllers.AdminConfirmStudent)
-	adminGroup.Post("/decline/:id", controllers.AdminDeclineStudent)
-	adminGroup.Post("/delete/student/:id", controllers.AdminDeleteStudent)
 	adminGroup.Post("/change_role", controllers.AdminChangeUserRole)
 	adminGroup.Get("/exam/list", controllers.GetPastExamsPage)
 	adminGroup.Get("/exam/planning", controllers.ExamPlanningPage)
 	adminGroup.Get("/exam/create", controllers.AdminCreateExamPage)
 	adminGroup.Post("/exam/create", controllers.AdminCreateExam)
-
+	adminGroup.Post("/api/student", controllers.AdminSetTargetStudent) // установка targetStudentID
+	adminGroup.Get("/student/profile", controllers.AdminShowStudentProfile)
+	adminGroup.Get("/student/documents", controllers.AdminShowStudentDocuments)
+	adminGroup.Post("/student/confirm", controllers.AdminConfirmStudent)
+	adminGroup.Post("/student/decline", controllers.AdminDeclineStudent)
+	adminGroup.Post("/student/delete", controllers.AdminDeleteStudent)
 }

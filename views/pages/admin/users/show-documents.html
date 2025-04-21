@@ -56,13 +56,11 @@
         <main class="main">
             <nav class="menu">
                 <ul class="menu__list">
-                    <li class="menu__item">
-                        <a href="/admin/show/student/{{.id}}{{if .showButtons}}?source=application{{end}}"
-                            class="menu__button">Личные данные</a>
-                    </li>
                     <li class="menu__item menu__item--active">
-                        <a href="/admin/show/document/{{.id}}{{if .showButtons}}?source=application{{end}}"
-                            class="menu__button">Документы</a>
+                        <a href="/admin/student/profile" class="menu__button">Личные данные</a>
+                    </li>
+                    <li class="menu__item">
+                        <a href="/admin/student/documents" class="menu__button">Документы</a>
                     </li>
                 </ul>
             </nav>
