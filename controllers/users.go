@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -101,6 +102,111 @@ func ChangeUserPhoto(c *fiber.Ctx) error {
 	database.DB.Save(&user)
 
 	return c.JSON(fiber.Map{"success": true})
+}
+
+func UserViewExam(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	// Проверяем, что пользователь авторизован
+	var student models.User
+	if err := database.DB.First(&student, userID).Error; err != nil || (student.Role != "student" && student.Role != "examiner") {
+		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
+	}
+
+	// Получаем ID экзамена из URL
+	examID, err := strconv.Atoi(c.Params("id"))
+	if err != nil || examID <= 0 {
+		return c.Status(fiber.StatusBadRequest).SendString("Некорректный ID экзамена")
+	}
+
+	// Загружаем экзамен
+	var exam models.Exam
+	if err := database.DB.First(&exam, examID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+	}
+
+	// Загружаем экзаменаторов и студентов
+	var examinerLinks []models.ExamExaminer
+	var studentLinks []models.ExamStudent
+	database.DB.Where("jest_id = ?", exam.JestID).Find(&examinerLinks)
+	database.DB.Where("jest_id = ?", exam.JestID).Find(&studentLinks)
+
+	selectedExaminerIDs := make(map[uint]bool)
+	selectedStudentIDs := make(map[uint]bool)
+	for _, link := range examinerLinks {
+		selectedExaminerIDs[link.UserID] = true
+	}
+	for _, link := range studentLinks {
+		selectedStudentIDs[link.UserID] = true
+	}
+
+	// Загружаем пользователей
+	var allUsers []models.User
+	database.DB.Where("role IN ?", []string{"examiner", "student"}).Find(&allUsers)
+
+	type ExamUser struct {
+		ID       uint
+		Name     string
+		Avatar   string
+		Selected bool
+		Role     string // 🔥 ДОБАВИЛИ роль: chair, secretary, examiner
+	}
+
+	findAvatar := func(storagePath string) string {
+		if storagePath != "" {
+			if files, err := os.ReadDir(storagePath); err == nil {
+				for _, f := range files {
+					if strings.HasPrefix(f.Name(), "avatar") {
+						return "/uploads/" + filepath.Base(storagePath) + "/" + f.Name()
+					}
+				}
+			}
+		}
+		return "/pictures/Generic avatar.png"
+	}
+
+	var examiners, students []ExamUser
+	for _, user := range allUsers {
+		name := fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp)
+		avatar := findAvatar(user.StoragePath)
+		if user.Role == "examiner" {
+			role := "examiner"
+			if user.ID == exam.ChairmanID {
+				role = "chair"
+			} else if user.ID == exam.SecretaryID {
+				role = "secretary"
+			}
+
+			examiners = append(examiners, ExamUser{
+				ID:       user.ID,
+				Name:     name,
+				Avatar:   avatar,
+				Selected: selectedExaminerIDs[user.ID],
+				Role:     role, // 🔥 передаём правильную роль
+			})
+		} else if user.Role == "student" {
+			students = append(students, ExamUser{
+				ID:       user.ID,
+				Name:     name,
+				Avatar:   avatar,
+				Selected: selectedStudentIDs[user.ID],
+			})
+		}
+	}
+
+	return services.Render(c, "admin", "exams/view_exam.html", fiber.Map{
+		"role":             student.Role,
+		"status":           student.Status,
+		"avatar":           findAvatar(student.StoragePath),
+		"ExamCode":         exam.JestID,
+		"ExamID":           exam.ID,
+		"Examiners":        examiners,
+		"Students":         students,
+		"exam_date":        exam.Date.Format("2006-01-02"),
+		"commission_start": exam.CommissionStart.Format("2006-01-02"),
+		"commission_end":   exam.CommissionEnd.Format("2006-01-02"),
+		"path":             c.Path(),
+	})
 }
 
 // GetUserProfile возвращает страницу профиля студента (pages/student_page.html)
@@ -1028,17 +1134,93 @@ func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 	})
 }
 
-func getDocumentPaths(userID uint, docType string) []string {
-	var docs []models.UserDocument
-	database.DB.Where("user_id = ? AND document_type = ?", userID, docType).Find(&docs)
-	paths := []string{}
-	for _, doc := range docs {
-		if strings.HasPrefix(doc.FilePath, "./uploads/") {
-			paths = append(paths, "/uploads/"+filepath.Base(filepath.Dir(doc.FilePath))+"/"+filepath.Base(doc.FilePath))
+func GetUserExams(c *fiber.Ctx) error {
+
+	userID := c.Locals("userID").(uint)
+	userRole := c.Locals("userRole").(string)
+
+	var exams []models.Exam
+
+	if userRole == "student" {
+		// Найти экзамены, где студент участвует
+		if err := database.DB.
+			Joins("JOIN exam_students ON exam_students.exam_id = exams.id").
+			Where("exam_students.user_id = ?", userID).
+			Preload("Examiners").
+			Preload("Students").
+			Order("date DESC").
+			Find(&exams).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Ошибка получения экзаменов")
+		}
+	} else if userRole == "examiner" {
+		// Найти экзамены, где экзаменатор участвует или является председателем/секретарем
+		sub := database.DB.
+			Table("exam_examiners").
+			Select("exam_id").
+			Where("user_id = ?", userID)
+
+		if err := database.DB.
+			Preload("Examiners").
+			Preload("Students").
+			Where(
+				database.DB.
+					Where("id IN (?)", sub).
+					Or("chairman_id = ? OR secretary_id = ?", userID, userID),
+			).
+			Order("date DESC").
+			Find(&exams).Error; err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("Ошибка получения экзаменов")
 		}
 	}
-	return paths
+	// Подготовка данных для шаблона
+	type ExamItem struct {
+		ID   uint
+		Date string
+	}
+	var examList []ExamItem
+	for _, e := range exams {
+		examList = append(examList, ExamItem{
+			ID:   e.ID,
+			Date: e.Date.Format("02.01.2006"),
+		})
+	}
+
+	user := models.User{}
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
+	}
+
+	avatar := "/pictures/Generic avatar.png"
+	if user.StoragePath != "" {
+		files, _ := os.ReadDir(user.StoragePath)
+		for _, f := range files {
+			if strings.HasPrefix(f.Name(), "avatar") {
+				avatar = "/uploads/" + filepath.Base(user.StoragePath) + "/" + f.Name()
+				break
+			}
+		}
+	}
+
+	return services.Render(c, "student", "planing_exams.html", fiber.Map{
+		"Exams":  examList,
+		"role":   user.Role,
+		"status": user.Status,
+		"avatar": avatar,
+		"path":   c.Path(),
+	})
 }
+
+//	func getDocumentPaths(userID uint, docType string) []string {
+//		var docs []models.UserDocument
+//		database.DB.Where("user_id = ? AND document_type = ?", userID, docType).Find(&docs)
+//		paths := []string{}
+//		for _, doc := range docs {
+//			if strings.HasPrefix(doc.FilePath, "./uploads/") {
+//				paths = append(paths, "/uploads/"+filepath.Base(filepath.Dir(doc.FilePath))+"/"+filepath.Base(doc.FilePath))
+//			}
+//		}
+//		return paths
+//	}
 func GetUserApplicationPage(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 

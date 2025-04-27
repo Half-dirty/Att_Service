@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="../../style/style.css">
     <link rel="stylesheet" href="../../style/student/global.css">
     <link rel="stylesheet" href="../../style/student/applications.css">
-    <title>Document</title>
+    <title>Назначенные экзамены</title>
 </head>
 
 <body>
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
-                <a class="header__logo" href="./index.html">
+                <a class="header__logo" href="/user/profile">
                     <img class="header__logo-img" src="../../pictures/logo.svg" alt="Logo" />
                     <div class="header__logo-text__container">
                         <h2 class="header__logo-text">Аттестация переводчиков русского жестового языка</h2>
@@ -31,7 +31,7 @@
                             <h2>Статус:</h2>
                             {{if or (eq .status "pending") (eq .status "")}}
                             <h2 class="header__status-text header__status-text--inactive">Не подтвержден</h2>
-                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>                            
+                            <a href="#" class="header__status-button popup__link" name="aplication_form">Подтвердить</a>
                             {{end}}
                             {{if eq .status "declined"}}
                             <a href="#" class="header__status-button aproove_form" name="aproove_form">Отказ</a>
@@ -44,13 +44,15 @@
                         <div class="header__role">
                             <h2>Роль:</h2>
                             {{if eq .role "student"}}
-                                <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
+                            <h2 class="header__role-text header__role-text--student">Аттестуемый</h2>
                             {{else if eq .role "examiner"}}
-                                <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
+                            <h2 class="header__role-text header__role-text--examiner">Экзаменатор</h2>
                             {{end}}
-                        </div>                        
+                        </div>
                     </div>
-                    <img class="header__profile-avatar" src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}" alt="Profile Avatar">
+                    <img class="header__profile-avatar"
+                        src="{{if .avatar}}{{.avatar}}{{else}}../pictures/Generic avatar.png{{end}}"
+                        alt="Profile Avatar">
                 </div>
             </div>
         </header>
@@ -58,11 +60,11 @@
         <main class="main">
             <nav class="menu">
                 <ul class="menu__list">
-                    <li class="menu__item {{if eq .path "/user/profile"}}menu__item--active{{end}}">
+                    <li class="menu__item {{if eq .path " /user/profile"}}menu__item--active{{end}}">
                         <a href="/user/profile" class="menu__button">Личные данные</a>
                     </li>
-                    <li class="menu__item {{if eq .path "/user/document"}}menu__item--active{{end}}">
-                        <a href="/user/document" type="button" class="menu__button">Документы</a>
+                    <li class="menu__item {{if eq .path " /user/document"}}menu__item--active{{end}}">
+                        <a href="/user/document" class="menu__button">Документы</a>
                     </li>
                     {{if or (eq .status "pending") (eq .status "") (eq .status "declined")}}
                     <li class="menu__item menu__item--disabled">
@@ -71,15 +73,15 @@
                     {{end}}
 
                     {{if eq .status "approved"}}
-                    <li class="menu__item {{if eq .path "/user/application"}}menu__item--active{{end}}">
+                    <li class="menu__item {{if eq .path " /user/application"}}menu__item--active{{end}}">
                         <a href="/user/application" class="menu__button">Мои заявления</a>
                     </li>
                     {{end}}
                     <li class="menu__item menu__item--active">
-                        <a href="#" class="menu__button">Назначенные экзамены</a>
+                        <a href="/user/exams" class="menu__button">Назначенные экзамены</a>
                     </li>
-                    <li class="menu__item {{if eq .path "/user/settings"}}menu__item--active{{end}}">
-                        <a href="#" class="menu__button">Настройки</a>
+                    <li class="menu__item {{if eq .path " /user/settings"}}menu__item--active{{end}}">
+                        <a href="/user/settings" class="menu__button">Настройки</a>
                     </li>
                 </ul>
             </nav>
@@ -87,40 +89,31 @@
             <section class="profile">
                 <div class="profile__body">
                     <div class="profile__application-list">
+                        {{if .Exams}}
+                        {{range .Exams}}
                         <div class="profile__application-item profile__application-item--active">
-                            <h2 class="profile__application-text">Заявка на аттестацию от ....</h2>
+                            <h2 class="profile__application-text">Экзамен от {{.Date}}</h2>
                             <div class="profile__application-info">
-                                {{if eq .status "examiner"}}
-                                <a href="" class="profile__application-link">Ссылка на экзамен</a>
+                                {{if eq $.role "examiner"}}
+                                <a href="/exam/{{.ID}}" class="profile__application-link">Ссылка на экзамен</a>
+                                {{end}}
+                                {{if eq $.role "student"}}
+                                <a href="/user/exam/{{.ID}}" class="profile__application-link">Посмотреть экзамен</a>
                                 {{end}}
                                 <h2 class="profile__application-text">Дата экзамена:</h2>
-                                <h2 class="profile__application-date">----</h2>
+                                <h2 class="profile__application-date">{{.Date}}</h2>
                             </div>
                         </div>
+                        {{end}}
+                        {{else}}
                         <div class="profile__application-item">
-                            <h2 class="profile__application-text">Заявка на аттестацию от ...</h2>
-                            <div class="profile__application-info">
-                                {{if eq .status "examiner"}}
-                                <a href="" class="profile__application-link">Ссылка на экзамен</a>
-                                {{end}}
-                                <h2 class="profile__application-text">Дата экзамена:</h2>
-                                <h2 class="profile__application-date">----</h2>
-                            </div>
+                            <h2 class="profile__application-text">Назначенные экзамены не найдены</h2>
                         </div>
-                        <div class="profile__application-item">
-                            <h2 class="profile__application-text">Заявка на аттестацию от...</h2>
-                            <div class="profile__application-info">
-                                {{if eq .status "examiner"}}
-                                <a href="" class="profile__application-link">Ссылка на экзамен</a>
-                                {{end}}
-                                <h2 class="profile__application-text">Дата экзамена:</h2>
-                                <h2 class="profile__application-date">----</h2>
-                            </div>
-                        </div>
+                        {{end}}
                     </div>
+                </div>
             </section>
         </main>
-
 
         <footer class="footer"></footer>
     </div>

@@ -16,5 +16,5 @@ func RegisterPagesRoutes(app *fiber.App) {
 	// Страница регистрации
 	app.Post("/login", controllers.Login)
 	app.Post("/refresh", controllers.Refresh)
-	app.Get("/ws", middlewares.AuthMiddleware, websocket.New(services.WebSocketHandler))
+	app.Get("/ws", middlewares.UniversalAuthMiddleware("examiner"), websocket.New(services.WebSocketHandler))
 }

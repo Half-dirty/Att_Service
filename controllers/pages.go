@@ -70,7 +70,7 @@ func Login(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   false,
 		SameSite: "Lax",
-		Expires:  time.Now().Add(15 * time.Minute),
+		Expires:  time.Now().Add(60 * time.Minute),
 	})
 
 	// Ответ клиенту
@@ -83,49 +83,52 @@ func Login(c *fiber.Ctx) error {
 // Logout очищает куки и перенаправляет на страницу входа.
 func Logout(c *fiber.Ctx) error {
 	c.ClearCookie("access_token")
-	return c.Redirect("/login")
+	return c.Redirect("/")
 }
 
-// Refresh обновляет access-токен, используя refresh-токен.
 func Refresh(c *fiber.Ctx) error {
-	type RefreshRequest struct {
-		RefreshToken string `json:"refresh_token"`
+	refreshToken := c.Cookies("refresh_token")
+	if refreshToken == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Отсутствует refresh-токен"})
 	}
-	var req RefreshRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Неверные входные данные"})
-	}
-	token, err := jwt.Parse(req.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		return []byte(config.JWTSecret), nil
 	})
 	if err != nil || !token.Valid {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Неверный refresh-токен"})
 	}
+
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Ошибка токена"})
 	}
+
 	userEmail, ok := claims["user"].(string)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Неверный токен"})
 	}
+
 	var user models.User
-	if err := database.DB.Where("email = ? AND refresh_token = ?", userEmail, req.RefreshToken).First(&user).Error; err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Refresh-токен не найден"})
+	if err := database.DB.Where("email = ? AND refresh_token = ?", userEmail, refreshToken).First(&user).Error; err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Пользователь не найден"})
 	}
+
 	newAccessToken, _, err := services.GenerateTokens(user.ID, user.Email, user.Role)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Не удалось создать токен"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка генерации токена"})
 	}
+
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   false, // ⚠️ Лучше поставить true на HTTPS
 		SameSite: "Lax",
-		Expires:  time.Now().Add(15 * time.Minute),
+		Expires:  time.Now().Add(60 * time.Minute),
 	})
-	return c.JSON(fiber.Map{"message": "Токен обновлён"})
+
+	return c.JSON(fiber.Map{"success": true})
 }
 
 // Verify обрабатывает переход по ссылке подтверждения (GET /verify?token=...)

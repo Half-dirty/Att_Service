@@ -160,3 +160,10 @@ function checkAllStudentsEvaluated() {
 $('.exam__list').on('input', 'input[type="number"]', function () {
     checkAllStudentsEvaluated();
 });
+
+
+// этот код нужен, чтобы обновлять access_token "в фоне"
+const refreshAccessToken = () => {
+    $.post("/refresh").fail(() => window.location.href = "/");
+};
+setInterval(refreshAccessToken, 10 * 60 * 1000);

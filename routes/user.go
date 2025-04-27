@@ -9,7 +9,7 @@ import (
 
 func RegisterUserRoutes(app *fiber.App) {
 	// Группа маршрутов для пользователей, требующая авторизации
-	userGroup := app.Group("/user", middlewares.AuthMiddleware)
+	userGroup := app.Group("/user", middlewares.UniversalAuthMiddleware("student", "admin", "examiner"))
 	// Редактирование профиля – страница student_page.html
 	userGroup.Get("/profile", controllers.GetUserProfile)
 	userGroup.Post("/maindata", controllers.SaveMainPageData)
@@ -25,6 +25,8 @@ func RegisterUserRoutes(app *fiber.App) {
 	userGroup.Post("/create-application", controllers.SaveUserApplication)
 	userGroup.Get("/exam/waiting/:exam_id", controllers.GetExamWaitingPage)
 	userGroup.Get("/exam/student/:exam_id/:student_id", controllers.GetExamStudentPage)
-	userGroup.Get("/documents/reason", controllers.GetApplicationDeclineReason)
+	userGroup.Post("/documents/reason", controllers.GetApplicationDeclineReason)
+	userGroup.Get("/exams", controllers.GetUserExams)
+	userGroup.Get("/exam/:id", controllers.UserViewExam)
 
 }

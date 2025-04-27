@@ -9,7 +9,7 @@ $(document).ready(function () {
 });
 
 
-$(document).ready(function () {
+$(document).ready(function (e) {
     $(document).on('keydown', 'button', function () {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -80,8 +80,10 @@ $('#login-button').on('click', function (e) {
         data: JSON.stringify({ email: email, pass: pass }),
         success: function (res) {
             if (res.success) {
+                localStorage.setItem("refresh_token", res.refresh_token); // ← обязательно
                 return window.location.href = `/${res.link}`;
             }
+        
             if (res.error) {
                 switch (res.error) {
                     case "userNone":
@@ -99,7 +101,6 @@ $('#login-button').on('click', function (e) {
     })
 })
 
-localStorage.setItem("refresh_token", res.refresh_token);
 
 
 

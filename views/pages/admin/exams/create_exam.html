@@ -37,7 +37,7 @@
                         <a href="/admin/exam/planning" type="button" class="menu__button">Запланированные экзамены</a>
                     </li>
                     <li class="menu__item">
-                        <a href="./exam-scheduled.html" class="menu__button">Назначенные экзамены</a>
+                        <a href="/admin/exam/scheduled" class="menu__button">Назначенные экзамены</a>
                     </li>
                 </ul>
             </nav>
@@ -47,7 +47,7 @@
                     <div class="profile__params-item">
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="exam_date">Дата проведения экзамена:</label>
-                            <input class="profile__params-input" type="date" name="exam_date" id="exam_date" value="{{.exam_date}}" placeholder="__.__.____">
+                            <input class="profile__params-input" type="date" name="exam_date" id="exam_date" value="{{.exam_date}}">
                         </div>
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="exam_code">Предварительный код экзамена:</label>
@@ -59,11 +59,11 @@
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="commission_start">Начало действия
                                 комиссии:</label>
-                                <input class="profile__params-input" type="date" name="commission_start" id="commission_start" value="{{.commission_start}}" placeholder="__.__.____">
+                                <input class="profile__params-input" type="date" name="commission_start" id="commission_start" value="{{.commission_start}}">
                         </div>
                         <div class="profile__item-part">
                             <label class="profile__params-label" for="commission_end">Конец действия комиссии:</label>
-                            <input class="profile__params-input" type="date" name="commission_end" id="commission_end" value="{{.commission_end}}" placeholder="__.__.____">
+                            <input class="profile__params-input" type="date" name="commission_end" id="commission_end" value="{{.commission_end}}">
                         </div>
                     </div>
                     <div class="profile__people">
@@ -74,16 +74,15 @@
                                     всех</button>
                             </div>
                             {{range .Examiners}}
-                            <div class="profile__student-item" data-id="{{.ID}}" {{if .Selected}}data-selected="true"{{end}}>
+                            <div class="profile__examiner-item" data-id="{{.ID}}" {{if .Selected}}data-selected="true"{{end}}>
                                 <img class="profile__avatar-mini" src="{{.Avatar}}" alt="Аватар">
                                 <div class="profile__user-name">{{.Name}}</div>
                                 <div class="profile__examiner-checked">
                                     <div class="profile__menu-icon"></div>
-                                    <select class="profile__examiner-role" name="examiner_role_{{.ID}}"
-                                        style="display: none;">
-                                        <option value="chair">Председатель</option>
-                                        <option value="secretary">Секретарь</option>
-                                        <option value="examiner" selected>Экзаменатор</option>
+                                    <select class="profile__examiner-role" name="examiner_role_{{.ID}}" style="display: none;">
+                                        <option value="chair" {{if eq .Role "chair"}}selected{{end}}>Председатель</option>
+                                        <option value="secretary" {{if eq .Role "secretary"}}selected{{end}}>Секретарь</option>
+                                        <option value="examiner" {{if or (eq .Role "examiner") (eq .Role "")}}selected{{end}}>Экзаменатор</option>
                                     </select>
                                 </div>
                             </div>
@@ -105,7 +104,7 @@
                         </div>
                     </div>
                     <div class="profile__exam-buttons">
-                        <div class="profile__link">
+                        <div class="profile__link" data-id="{{.ExamID}}">
                             <button class="profile__exam-link" id="assign_exam">Назначить</button>
                         </div>
                         <div class="profile__save">
@@ -124,6 +123,7 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
 <script src="../../../scripts/admin_script.js"></script>
+
 
 
 </html>

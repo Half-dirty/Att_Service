@@ -9,7 +9,7 @@ import (
 
 func RegisterAdminRoutes(app *fiber.App) {
 	// Группа маршрутов для администратора (проверяется middleware)
-	adminGroup := app.Group("/admin", middlewares.AuthMiddleware, middlewares.AdminOnlyMiddleware)
+	adminGroup := app.Group("/admin", middlewares.UniversalAuthMiddleware("admin"))
 	// Главная страница админа – admin_page.html
 	adminGroup.Get("/", controllers.AdminPage)
 	adminGroup.Get("/user/list", controllers.AdminUserList)
@@ -38,5 +38,6 @@ func RegisterAdminRoutes(app *fiber.App) {
 	adminGroup.Post("/api/exam/cancel", controllers.AdminCancelExam)
 	adminGroup.Post("/api/application/decline", controllers.DeclineApplication)
 	adminGroup.Post("/student/decline", controllers.AdminDeclineStudent)
+	adminGroup.Get("/exam/view", controllers.AdminViewExam)
 
 }
