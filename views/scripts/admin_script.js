@@ -992,7 +992,44 @@ const adminModals = {
                 </form>
             </div>
         </div>
-    </div>`
+    </div>`,
+    'decline_application':
+        `
+    <div id="decline_application" class="popup">
+        <div class="popup__body">
+            <div class="popup__content">
+                <div class="popup__header">
+                    <a href="" class="popup__close close-popup">
+                        <span></span>
+                    </a>
+                    <h2 class="popup__title">Укажите причину отказа:</h2>
+                </div>
+                <div class="popup__form">
+                    <div class="popup__checker">
+                        <form class="" id="decline_application-form" enctype="multipart/form-data" method="POST" action="#">
+                            <div class="popup__list">
+                                <label class="popup__item">
+                                    <input type="checkbox" name="reason" value="invalid_name"> Неверно указанные данные
+                                </label>
+                                <label class="popup__item">
+                                    <input type="checkbox" name="reason" value="invalid_contacts"> Прикреплены не соответствующие фото</label>
+                                <label class="popup__item">
+                                    <input type="checkbox" name="reason" value="no_documents"> Прикреплены не все документы
+                                </label>
+                                 <div class="popup__textarea">
+                                    <textarea placeholder="Напишите пояснение" name="explanation"></textarea>
+                                </div>
+                            </div>
+                            <div class="popup__send popup__send--disabled">
+                                <button type="submit" class="">Отправить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    `,
 };
 
 //---MODAL CLASS------------------------------------------------------------

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../../style/style.css">
     <link rel="stylesheet" href="../../style/student/global.css">
     <link rel="stylesheet" href="../../style/student/applications.css">
+    <link rel="stylesheet" href="../../style/admin/global.css">
     <title>Document</title>
 </head>
 
@@ -285,9 +286,15 @@
                         </div>
                         {{end}}
                         {{if eq .role "admin"}}
-                        <div class="profile__agree">
-                            <button type="submit" class="profile__agree-button" id="agree_application">Подтвердить
-                                заявление</button>
+                        <div class="profile__application-buttons">
+                            <div class="profile__decline">
+                                <button type="button" class="profile__decline-button" id="decline_application"
+                                    name="decline_application">Отказать</button>
+                            </div>
+                            <div class="profile__agree">
+                                <button type="submit" class="profile__agree-button" id="agree_application">Подтвердить
+                                    заявку</button>
+                            </div>
                         </div>
                         {{end}}
                     </div>
