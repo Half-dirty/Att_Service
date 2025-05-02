@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Вступление к экзамену</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../../style/style.css">
+    <link rel="stylesheet" href="../../../style/admin/exam_procedure.css">
+</head>
+
+<body data-role="chairman" data-id="{{.id}}" data-name="{{.name}}" data-exam-id="{{.exam_id}}">
+    <div class="wrapper">
+        <main class="main main--exam">
+            <section class="exam__window">
+                <div class="exam__body">
+                    <div class="exam__speach-container">
+                        <h1>Вступительная речь</h1>
+                        <div class="exam__speach-text">
+                            <p>
+                                Уважаемые участники экзамена!<br>
+                                Мы рады приветствовать вас на экзамене по русскому жестовому языку.
+                                Этот экзамен является важным этапом в вашей профессиональной карьере.
+                                Мы желаем вам удачи и успехов! Надеемся, что вы продемонстрируете свои знания наилучшим
+                                образом.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="exam__start">
+                        <a href="#" class="exam__start-button examiner-list-btn">Посмотреть подключившихся</a>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer class="footer"></footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../../../scripts/admin_script.js"></script>
+    <script src="../../../scripts/socket.js"></script>
+    <script>
+        $(document).ready(function () {
+            const role = $("body").data("role");
+            const id = $("body").data("id");
+            const name = $("body").data("name");
+            const examId = $("body").data("exam-id");
+
+            if (role && id && name && examId) {
+                initSocket(role, id, name, examId);
+            }
+
+            $(document).on('click', '.examiner-list-btn', function (e) {
+                e.preventDefault();
+
+                if ($('#start-exam').length === 0) {
+                    openModal('start-exam'); // Создаём модалку
+                } else {
+                    $('#start-exam').addClass('popup__open');
+                    $('body').addClass('modal');
+                }
+
+                // 🔥 Вставляем старые (сохранённые) данные, чтобы сразу показать
+                openStartExamModal(lastExaminerList);
+
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: "request_examiner_list" })); // Запрашиваем обновление списка
+                } else {
+                    console.error("Сокет не подключён");
+                }
+            });
+
+            $(document).on('click', '#start_exam_confirm', function (e) {
+                e.preventDefault();
+
+                const examId = $("body").data("exam-id");
+                if (!examId) {
+                    console.error("Нет examID");
+                    return;
+                }
+
+                window.location.href = `/user/exam/start/${examId}`;
+            });
+
+        });
+    </script>
+</body>
+
+</html>

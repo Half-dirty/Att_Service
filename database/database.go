@@ -42,6 +42,8 @@ func Connect() error {
 		&models.ApplicationDecline{},
 		&models.ExamExaminer{},
 		&models.ExamStudent{},
+		&models.ExamGrade{},
+		&models.ExamGradeCriterion{},
 	); err != nil {
 		return err
 	}

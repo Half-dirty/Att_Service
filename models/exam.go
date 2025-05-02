@@ -21,6 +21,24 @@ type Exam struct {
 	Students  []User `gorm:"many2many:exam_students;"`
 }
 
+type ExamGrade struct {
+	gorm.Model
+	ExamID         uint
+	ExaminerID     uint
+	StudentID      uint
+	Qualification  string
+	Specialization string
+	Recommendation string
+	Abstained      bool
+
+	Criteria []ExamGradeCriterion `gorm:"foreignKey:GradeID"`
+}
+type ExamGradeCriterion struct {
+	gorm.Model
+	GradeID     uint // ID родительского оценочного листа
+	CriterionID int  // ID критерия (например, 1, 2, 3...)
+	Score       *int // Балл за критерий (может быть null)
+}
 type ExamStudent struct {
 	ID     uint `gorm:"primaryKey"`
 	JestID string

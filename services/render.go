@@ -17,18 +17,26 @@ var templateFuncs = template.FuncMap{
 	"formatDate": formatDate,
 }
 
-// Renders a template from views-pages/pages/{role}/{path}
 func Render(c *fiber.Ctx, userRole string, relativePath string, data map[string]interface{}) error {
 	if userRole == "examiner" {
 		userRole = "student"
 	}
+	if userRole == "admin" {
+		userRole = "admin" // оставляем admin как есть
+	}
+
 	tplPath := filepath.Join("views", "pages", userRole, relativePath)
 
 	if _, err := os.Stat(tplPath); os.IsNotExist(err) {
 		return c.Status(404).SendString("Template not found: " + tplPath)
 	}
 
-	tmpl, err := template.New(filepath.Base(tplPath)).Funcs(templateFuncs).ParseFiles(tplPath)
+	tmpl := template.New(filepath.Base(tplPath)).Funcs(template.FuncMap{
+		"add1":  func(i int) int { return i + 1 },
+		"slice": func(args ...int) []int { return args },
+	})
+
+	tmpl, err := tmpl.ParseFiles(tplPath)
 	if err != nil {
 		return c.Status(500).SendString("Template parse error: " + err.Error())
 	}

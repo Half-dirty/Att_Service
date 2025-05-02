@@ -57,7 +57,7 @@
             </div>
         </header>
 
-        <main class="main">
+        <main class="main main--admin">
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item {{if eq .path " /user/profile"}}menu__item--active{{end}}">
@@ -95,7 +95,8 @@
                             <h2 class="profile__application-text">Экзамен от {{.Date}}</h2>
                             <div class="profile__application-info">
                                 {{if eq $.role "examiner"}}
-                                <a href="/exam/{{.ID}}" class="profile__application-link">Ссылка на экзамен</a>
+                                <a href="/user/exam/{{.ID}}" class="profile__application-link">Посмотреть экзамен</a>
+                                <button class="start-exam-btn" data-exam-id="{{.ID}}">Перейти к экзамену</button>
                                 {{end}}
                                 {{if eq $.role "student"}}
                                 <a href="/user/exam/{{.ID}}" class="profile__application-link">Посмотреть экзамен</a>
@@ -122,6 +123,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
     <script src="../../scripts/student_script.js"></script>
+    <script src="../../scripts/socket.js"></script>
 </body>
 
 </html>

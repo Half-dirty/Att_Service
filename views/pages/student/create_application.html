@@ -60,7 +60,7 @@
             </div>
         </header>
 
-        <main class="main">
+        <main class="main main--admin">
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item {{if eq .path " /user/profile"}}menu__item--active{{end}}">
@@ -131,14 +131,9 @@
                                 <label class="profile__label" for="requested_category">Запрашиваемая категория
                                     аттестации:</label>
                                 <select class="profile__selector" name="requested_category" id="requested_category">
-                                    <option value="03.01600.01">03.01600.01 Переводчик русского жестового языка III
-                                        категории (5 уровень квалификации)</option>
-                                    <option value="03.01600.02">03.01600.02 Переводчик русского жестового языка —
-                                        синхронист II категории (6 уровень квалификации)</option>
-                                    <option value="03.01600.03">03.01600.03 Переводчик русского жестового языка I
-                                        категории (6 уровень квалификации)</option>
-                                    <option value="03.01600.04">03.01600.04 Переводчик русского жестового языка высшей
-                                        категории — эксперт (7 уровень квалификации)</option>
+                                    {{range .requested_category_list}}
+                                    <option value="{{.Value}}" {{if .Selected}}selected{{end}}>{{.Text}}</option>
+                                    {{end}}
                                 </select>
                             </div>
                         </div>
@@ -202,42 +197,14 @@
                     </div>
                     <div class="profile__row">
                         <div class="profile__scan">
-                            <label class="profile__label" for="scan_diploma">Скан диплома об образовании:</label>
-                            <div class="uploadContainer profile__scan--input">
-                                <input type="file" name="diplom_img" id="scan_diploma" accept="image/*" hidden
-                                    class="scan__input" data-id="diplom_img" multiple>
-                                <div id="diplom_img" name="diplom_img" class="image-preview">
-                                    {{range .diplom_images}}
-                                    <img src="{{.}}" alt="Диплом">
-                                    {{end}}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="profile__row">
-                        <div class="profile__scan">
                             <label class="profile__label" for="scan_diploma_znii">Скан диплома о подготовке по жестовому
                                 языку:</label>
                             <div class="uploadContainer profile__scan--input">
-                                <input type="file" name="diplom_znii_img" id="scan_diploma_znii" accept="image/*" hidden
+                                <input type="file" name="diplom_jest_img" id="scan_diploma_znii" accept="image/*" hidden
                                     class="scan__input" data-id="diplom_znii_img" multiple>
                                 <div id="diplom_znii_img" name="diplom_znii_img" class="image-preview">
                                     {{range .diplom_jest_images}}
                                     <img src="{{.}}" alt="Диплом Жестовый">
-                                    {{end}}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="profile__row">
-                        <div class="profile__scan">
-                            <label class="profile__label" for="passport_all">Сканы паспорта:</label>
-                            <div class="uploadContainer profile__scan--input">
-                                <input type="file" name="passport_all" id="passport_all" accept="image/*" hidden
-                                    class="scan__input" multiple data-id="passport_all_preview">
-                                <div id="passport_all_preview" class="image-preview">
-                                    {{range .passport_images}}
-                                    <img src="{{.}}" alt="Паспорт">
                                     {{end}}
                                 </div>
                             </div>
@@ -276,7 +243,7 @@
                             <label class="profile__confirm-label" for="memberships">Согласие на обработку ваших
                                 персональных
                                 данных:</label>
-                                <input type="checkbox" name="consent" value="true" {{if .consent}}checked{{end}}>
+                            <input type="checkbox" name="consent" value="true" {{if .consent}}checked{{end}}>
 
                         </div>
                         {{if eq .role "student"}}

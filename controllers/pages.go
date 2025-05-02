@@ -85,7 +85,6 @@ func Logout(c *fiber.Ctx) error {
 	c.ClearCookie("access_token")
 	return c.Redirect("/")
 }
-
 func Refresh(c *fiber.Ctx) error {
 	refreshToken := c.Cookies("refresh_token")
 	if refreshToken == "" {
@@ -114,18 +113,36 @@ func Refresh(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Пользователь не найден"})
 	}
 
-	newAccessToken, _, err := services.GenerateTokens(user.ID, user.Email, user.Role)
+	// Генерируем новые access и refresh токены
+	newAccessToken, newRefreshToken, err := services.GenerateTokens(user.ID, user.Email, user.Role)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка генерации токена"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка генерации токенов"})
 	}
 
+	// Сохраняем новый refresh токен в БД
+	user.RefreshToken = newRefreshToken
+	if err := database.DB.Save(&user).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка сохранения токена"})
+	}
+
+	// Устанавливаем новые куки
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
-		HTTPOnly: true,
-		Secure:   false, // ⚠️ Лучше поставить true на HTTPS
-		SameSite: "Lax",
-		Expires:  time.Now().Add(60 * time.Minute),
+		HTTPOnly: false,
+		Path:     "/",
+		Secure:   false, // ❗ На HTTPS поставить true
+		SameSite: "Strict",
+		Expires:  time.Now().Add(15 * time.Minute), // Access токен короткий
+	})
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    newRefreshToken,
+		HTTPOnly: false,
+		Path:     "/",
+		Secure:   false,
+		SameSite: "Strict",
+		Expires:  time.Now().Add(7 * 24 * time.Hour), // Refresh токен на 7 дней
 	})
 
 	return c.JSON(fiber.Map{"success": true})

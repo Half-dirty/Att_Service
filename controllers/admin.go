@@ -119,6 +119,14 @@ func AdminDeclineStudent(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 func AdminCreateExamPage(c *fiber.Ctx) error {
+	type ExamUser struct {
+		ID       uint
+		Name     string
+		Avatar   string
+		Selected bool
+		Role     string
+	}
+
 	userID := c.Locals("userID").(uint)
 
 	var admin models.User
@@ -129,95 +137,96 @@ func AdminCreateExamPage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
 	}
 
-	// Получаем ID экзамена из сессии (если редактируем)
 	sess, _ := SessionStore.Get(c)
 	examIDRaw := sess.Get("targetExamID")
 
-	var selectedExaminerIDs = map[uint]bool{}
-	var selectedStudentIDs = map[uint]bool{}
 	var exam models.Exam
 	var examID uint
 	var examDate, startDate, endDate string
 
+	isEditing := false
+
 	if eid, ok := examIDRaw.(uint); ok && eid > 0 {
 		examID = eid
-		if err := database.DB.Preload("Examiners").Preload("Students").First(&exam, examID).Error; err == nil {
-			for _, e := range exam.Examiners {
-				selectedExaminerIDs[e.ID] = true
-			}
-			for _, s := range exam.Students {
-				selectedStudentIDs[s.ID] = true
-			}
+		if err := database.DB.First(&exam, examID).Error; err == nil {
+			isEditing = true
 			examDate = exam.Date.Format("2006-01-02")
 			startDate = exam.CommissionStart.Format("2006-01-02")
 			endDate = exam.CommissionEnd.Format("2006-01-02")
 		}
 	}
 
-	// Всегда генерируем новый JestID для отображения
+	// Всегда новый код
 	var count int64
 	database.DB.Model(&models.Exam{}).Where("status IN ?", []string{"scheduled", "completed"}).Count(&count)
 	examCode := generateExamCode(count + 1)
 
-	// Загружаем экзаменаторов и студентов со статусом approved
-	var rawExaminers, rawStudents []models.User
-	database.DB.Where("role = ? AND status = ?", "examiner", "approved").Find(&rawExaminers)
-	database.DB.Where("role = ? AND status = ?", "student", "approved").Find(&rawStudents)
+	var examiners, students []ExamUser
 
-	// Фильтруем студентов по наличию заявки
-	var approvedStudents []models.User
-	for _, u := range rawStudents {
-		var lastApp models.Application
-		if err := database.DB.Where("user_id = ?", u.ID).Order("created_at DESC").First(&lastApp).Error; err == nil && lastApp.Status == "approved" {
-			approvedStudents = append(approvedStudents, u)
-		}
-	}
+	if isEditing && (exam.Status == "scheduled" || exam.Status == "completed") {
+		// 🔥 если редактируем назначенный или завершённый экзамен — загружаем только связанных пользователей
+		var examinerLinks []models.ExamExaminer
+		var studentLinks []models.ExamStudent
+		database.DB.Where("jest_id = ?", exam.JestID).Find(&examinerLinks)
+		database.DB.Where("jest_id = ?", exam.JestID).Find(&studentLinks)
 
-	type ExamUser struct {
-		ID       uint
-		Name     string
-		Avatar   string
-		Selected bool
-		Role     string // <--- добавили сюда
-	}
-
-	findAvatar := func(user models.User) string {
-		if user.StoragePath != "" {
-			if files, err := os.ReadDir(user.StoragePath); err == nil {
-				for _, f := range files {
-					if strings.HasPrefix(f.Name(), "avatar") {
-						return "/uploads/" + filepath.Base(user.StoragePath) + "/" + f.Name()
-					}
+		for _, link := range examinerLinks {
+			var u models.User
+			if err := database.DB.First(&u, link.UserID).Error; err == nil {
+				role := "examiner"
+				if u.ID == exam.ChairmanID {
+					role = "chair"
+				} else if u.ID == exam.SecretaryID {
+					role = "secretary"
 				}
+
+				examiners = append(examiners, ExamUser{
+					ID:       u.ID,
+					Name:     fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
+					Avatar:   findAvatar(u.StoragePath),
+					Selected: true,
+					Role:     role,
+				})
 			}
 		}
-		return "/pictures/Generic avatar.png"
-	}
 
-	var examiners, students []ExamUser
-	for _, u := range rawExaminers {
-		role := "examiner"
-		if u.ID == exam.ChairmanID {
-			role = "chair"
-		} else if u.ID == exam.SecretaryID {
-			role = "secretary"
+		for _, link := range studentLinks {
+			var u models.User
+			if err := database.DB.First(&u, link.UserID).Error; err == nil {
+				students = append(students, ExamUser{
+					ID:       u.ID,
+					Name:     fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
+					Avatar:   findAvatar(u.StoragePath),
+					Selected: true,
+					Role:     "", // у студентов нет роли
+				})
+			}
 		}
+	} else {
+		// 🔥 если создаём новый экзамен или черновик — загружаем всех approved
+		var rawExaminers, rawStudents []models.User
+		database.DB.Where("role = ? AND status = ?", "examiner", "approved").Find(&rawExaminers)
+		database.DB.Where("role = ? AND status = ?", "student", "approved").Find(&rawStudents)
 
-		examiners = append(examiners, ExamUser{
-			ID:       u.ID,
-			Name:     fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
-			Avatar:   findAvatar(u),
-			Selected: selectedExaminerIDs[u.ID],
-			Role:     role, // 🔥 добавили роль
-		})
-	}
-	for _, u := range approvedStudents {
-		students = append(students, ExamUser{
-			ID:       u.ID,
-			Name:     fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
-			Avatar:   findAvatar(u),
-			Selected: selectedStudentIDs[u.ID],
-		})
+		for _, u := range rawExaminers {
+			role := "examiner"
+			examiners = append(examiners, ExamUser{
+				ID:       u.ID,
+				Name:     fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
+				Avatar:   findAvatar(u.StoragePath),
+				Selected: false,
+				Role:     role,
+			})
+		}
+		for _, u := range rawStudents {
+			students = append(students, ExamUser{
+				ID:       u.ID,
+				Name:     fmt.Sprintf("%s %s %s", u.SurnameInIp, u.NameInIp, u.LastnameInIp),
+				Avatar:   findAvatar(u.StoragePath),
+				Selected: false,
+				Role:     "",
+			})
+		}
 	}
 
 	sess.Delete("targetExamID")
@@ -226,10 +235,10 @@ func AdminCreateExamPage(c *fiber.Ctx) error {
 	return services.Render(c, "admin", "exams/create_exam.html", fiber.Map{
 		"role":             admin.Role,
 		"status":           admin.Status,
-		"avatar":           findAvatar(admin),
+		"avatar":           findAvatar(admin.StoragePath),
 		"Examiners":        examiners,
 		"Students":         students,
-		"ExamCode":         examCode, // Всегда новый для отображения
+		"ExamCode":         examCode,
 		"ExamID":           examID,
 		"exam_date":        examDate,
 		"commission_start": startDate,
@@ -544,11 +553,9 @@ func AdminCancelExam(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"success": true})
 }
-
 func AdminShowExam(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 
-	// Проверка роли администратора
 	var admin models.User
 	if err := database.DB.First(&admin, userID).Error; err != nil || admin.Role != "admin" {
 		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
@@ -562,24 +569,22 @@ func AdminShowExam(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("ID экзамена не найден в сессии")
 	}
 
-	// Получаем экзамен
 	var exam models.Exam
 	if err := database.DB.First(&exam, examID).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
 	}
 
-	// Генерация актуального кода для отображения
-	var count int64
-	database.DB.Model(&models.Exam{}).Where("status IN ?", []string{"scheduled", "completed"}).Count(&count)
-	examCode := generateExamCode(count + 1)
-
-	// Получаем связи экзаменаторов и студентов по JestID
+	// Получаем связи экзаменаторов и студентов
 	var examinerLinks []models.ExamExaminer
 	var studentLinks []models.ExamStudent
 	database.DB.Where("jest_id = ?", exam.JestID).Find(&examinerLinks)
 	database.DB.Where("jest_id = ?", exam.JestID).Find(&studentLinks)
 
-	// Мапа выбранных ID
+	// Загружаем всех пользователей
+	var allUsers []models.User
+	database.DB.Where("role IN ?", []string{"examiner", "student"}).Find(&allUsers)
+
+	// Словари для выбранных ID
 	selectedExaminerIDs := make(map[uint]bool)
 	selectedStudentIDs := make(map[uint]bool)
 	for _, link := range examinerLinks {
@@ -589,16 +594,12 @@ func AdminShowExam(c *fiber.Ctx) error {
 		selectedStudentIDs[link.UserID] = true
 	}
 
-	// Загружаем всех пользователей по ролям
-	var allUsers []models.User
-	database.DB.Where("role IN ?", []string{"examiner", "student"}).Find(&allUsers)
-
 	type ExamUser struct {
 		ID       uint
 		Name     string
 		Avatar   string
 		Selected bool
-		Role     string // 🔥 ДОБАВИЛИ роль: chair, secretary, examiner
+		Role     string
 	}
 
 	findAvatar := func(storagePath string) string {
@@ -615,32 +616,56 @@ func AdminShowExam(c *fiber.Ctx) error {
 	}
 
 	var examiners, students []ExamUser
-	for _, user := range allUsers {
-		name := fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp)
-		avatar := findAvatar(user.StoragePath)
-		if user.Role == "examiner" {
-			role := "examiner"
-			if user.ID == exam.ChairmanID {
-				role = "chair"
-			} else if user.ID == exam.SecretaryID {
-				role = "secretary"
-			}
 
-			examiners = append(examiners, ExamUser{
-				ID:       user.ID,
-				Name:     name,
-				Avatar:   avatar,
-				Selected: selectedExaminerIDs[user.ID],
-				Role:     role, // 🔥 передаём правильную роль
-			})
-		} else if user.Role == "student" {
+	// Загружаем экзаменаторов
+	for _, user := range allUsers {
+		if user.Role != "examiner" {
+			continue
+		}
+		role := "examiner"
+		if user.ID == exam.ChairmanID {
+			role = "chair"
+		} else if user.ID == exam.SecretaryID {
+			role = "secretary"
+		}
+		examiners = append(examiners, ExamUser{
+			ID:       user.ID,
+			Name:     fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp),
+			Avatar:   findAvatar(user.StoragePath),
+			Selected: selectedExaminerIDs[user.ID],
+			Role:     role,
+		})
+	}
+
+	// Загружаем студентов
+	if exam.Status == "scheduled" || exam.Status == "completed" {
+		// Берём только из связей
+		for _, link := range studentLinks {
+			var user models.User
+			if err := database.DB.First(&user, link.UserID).Error; err == nil {
+				students = append(students, ExamUser{
+					ID:       user.ID,
+					Name:     fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp),
+					Avatar:   findAvatar(user.StoragePath),
+					Selected: true,
+					Role:     "student",
+				})
+			}
+		}
+	} else {
+		// Для planned берём по заявкам
+		for _, user := range allUsers {
+			if user.Role != "student" {
+				continue
+			}
 			var lastApp models.Application
 			if err := database.DB.Where("user_id = ?", user.ID).Order("created_at DESC").First(&lastApp).Error; err == nil && lastApp.Status == "approved" {
 				students = append(students, ExamUser{
 					ID:       user.ID,
-					Name:     name,
-					Avatar:   avatar,
+					Name:     fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp),
+					Avatar:   findAvatar(user.StoragePath),
 					Selected: selectedStudentIDs[user.ID],
+					Role:     "student",
 				})
 			}
 		}
@@ -650,7 +675,7 @@ func AdminShowExam(c *fiber.Ctx) error {
 		"role":             admin.Role,
 		"status":           admin.Status,
 		"avatar":           findAvatar(admin.StoragePath),
-		"ExamCode":         examCode, // Всегда актуальный
+		"ExamCode":         exam.JestID,
 		"ExamID":           exam.ID,
 		"Examiners":        examiners,
 		"Students":         students,
@@ -1610,17 +1635,14 @@ func ApproveApplication(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusOK)
 }
-
 func AdminViewExam(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 
-	// Проверка прав администратора
 	var admin models.User
 	if err := database.DB.First(&admin, userID).Error; err != nil || admin.Role != "admin" {
 		return c.Status(fiber.StatusForbidden).SendString("Доступ запрещён")
 	}
 
-	// Получение ID экзамена из сессии
 	sess, _ := SessionStore.Get(c)
 	examIDRaw := sess.Get("targetExamID")
 	examID, ok := examIDRaw.(uint)
@@ -1628,13 +1650,11 @@ func AdminViewExam(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).SendString("ID экзамена не найден в сессии")
 	}
 
-	// Получаем экзамен
 	var exam models.Exam
 	if err := database.DB.First(&exam, examID).Error; err != nil {
 		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
 	}
 
-	// Получаем связи экзаменаторов и студентов
 	var examinerLinks []models.ExamExaminer
 	var studentLinks []models.ExamStudent
 	database.DB.Where("jest_id = ?", exam.JestID).Find(&examinerLinks)
@@ -1649,7 +1669,6 @@ func AdminViewExam(c *fiber.Ctx) error {
 		selectedStudentIDs[link.UserID] = true
 	}
 
-	// Загружаем пользователей
 	var allUsers []models.User
 	database.DB.Where("role IN ?", []string{"examiner", "student"}).Find(&allUsers)
 
@@ -1658,7 +1677,7 @@ func AdminViewExam(c *fiber.Ctx) error {
 		Name     string
 		Avatar   string
 		Selected bool
-		Role     string // 🔥 ДОБАВИЛИ роль: chair, secretary, examiner
+		Role     string
 	}
 
 	findAvatar := func(storagePath string) string {
@@ -1675,9 +1694,11 @@ func AdminViewExam(c *fiber.Ctx) error {
 	}
 
 	var examiners, students []ExamUser
+
 	for _, user := range allUsers {
 		name := fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp)
 		avatar := findAvatar(user.StoragePath)
+
 		if user.Role == "examiner" {
 			role := "examiner"
 			if user.ID == exam.ChairmanID {
@@ -1690,22 +1711,44 @@ func AdminViewExam(c *fiber.Ctx) error {
 				Name:     name,
 				Avatar:   avatar,
 				Selected: selectedExaminerIDs[user.ID],
-				Role:     role, // 🔥 передаём правильную роль
+				Role:     role,
 			})
-		} else if user.Role == "student" {
+		}
+	}
+
+	if exam.Status == "scheduled" || exam.Status == "completed" {
+		// Студентов берём только из связей
+		for _, link := range studentLinks {
+			var user models.User
+			if err := database.DB.First(&user, link.UserID).Error; err == nil {
+				students = append(students, ExamUser{
+					ID:       user.ID,
+					Name:     fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp),
+					Avatar:   findAvatar(user.StoragePath),
+					Selected: true,
+					Role:     "student",
+				})
+			}
+		}
+	} else {
+		// planned — грузим всех студентов через заявки
+		for _, user := range allUsers {
+			if user.Role != "student" {
+				continue
+			}
 			var lastApp models.Application
 			if err := database.DB.Where("user_id = ?", user.ID).Order("created_at DESC").First(&lastApp).Error; err == nil && lastApp.Status == "approved" {
 				students = append(students, ExamUser{
 					ID:       user.ID,
-					Name:     name,
-					Avatar:   avatar,
+					Name:     fmt.Sprintf("%s %s %s", user.SurnameInIp, user.NameInIp, user.LastnameInIp),
+					Avatar:   findAvatar(user.StoragePath),
 					Selected: selectedStudentIDs[user.ID],
+					Role:     "student",
 				})
 			}
 		}
 	}
 
-	// ВАЖНО: здесь мы передаём сохранённый exam.JestID, а не новый сгенерированный код
 	return services.Render(c, "admin", "exams/view_exam.html", fiber.Map{
 		"role":             admin.Role,
 		"status":           admin.Status,

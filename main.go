@@ -8,14 +8,16 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors" // Используем CORS middleware для Fiber
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/template/html/v2"
-	_ "github.com/gofiber/template/html/v2"
 )
 
 func main() {
 	// Создаём HTML-шаблонизатор, указывая директорию и расширение шаблонов
 	engine := html.New("C:/golang/att_service/views", ".html")
+	engine.AddFunc("add1", func(i int) int { return i + 1 })
+	engine.AddFunc("slice", func(args ...int) []int { return args })
 
 	// Инициализируем Fiber с подключённым движком
 	app := fiber.New(fiber.Config{
@@ -23,19 +25,27 @@ func main() {
 		BodyLimit: 20 * 1024 * 1024,
 	})
 
-	// 1. Создаем store
+	// Настроим CORS middleware
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",                            // Разрешаем все источники для разработки (на проде поменяйте на конкретные домены)
+		AllowMethods: "GET,POST,HEAD,PUT,DELETE",     // Разрешаем эти методы
+		AllowHeaders: "Origin, Content-Type, Accept", // Разрешаем эти заголовки
+	}))
+
+	// Создаем store для сессий
 	store := session.New()
 
-	// 2. Делаем его доступным во всех контроллерах
+	// Делаем его доступным во всех контроллерах
 	controllers.SessionStore = store
 
+	// Статические файлы
 	app.Static("/", "./views/")
 	app.Static("/style", "./views/style")
 	app.Static("/scripts", "./views/scripts")
 	app.Static("/pictures", "./views/pictures")
 	app.Static("/uploads", "./uploads")
 
-	// Регистрируем маршруты, которые работают только с предоставленными страницами
+	// Регистрируем маршруты
 	routes.RegisterPagesRoutes(app)
 	routes.RegisterRegistrationRoutes(app)
 	routes.RegisterUserRoutes(app)
@@ -46,5 +56,6 @@ func main() {
 		log.Fatalf("Ошибка подключения к БД: %v", err)
 	}
 
+	// Запускаем сервер
 	log.Fatal(app.Listen(config.ServerPort))
 }

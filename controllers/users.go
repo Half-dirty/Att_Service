@@ -208,6 +208,119 @@ func UserViewExam(c *fiber.Ctx) error {
 		"path":             c.Path(),
 	})
 }
+func GetExamStartPageIntro(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
+	}
+
+	examIDParam := c.Params("exam_id")
+
+	return services.Render(c, "admin", "exam_procedure/start_page.html", fiber.Map{
+		"role":    "chairman",
+		"id":      user.ID,
+		"name":    fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp),
+		"exam_id": examIDParam,
+	})
+}
+
+func GetExamStartPage(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+
+	var user models.User
+	if err := database.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
+	}
+
+	examIDParam := c.Params("exam_id")
+	examID, err := strconv.Atoi(examIDParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Некорректный ID экзамена")
+	}
+
+	var exam models.Exam
+	if err := database.DB.First(&exam, examID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+	}
+
+	// 🔥 Загружаем студентов, прикреплённых к экзамену
+	var studentIDs []uint
+	if err := database.DB.Table("exam_students").Where("exam_id = ?", examID).Pluck("user_id", &studentIDs).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки студентов")
+	}
+
+	students := []fiber.Map{}
+	for _, studentID := range studentIDs {
+		var student models.User
+		var examinerCount int64
+		database.DB.Table("exam_examiners").Where("exam_id = ?", examID).Count(&examinerCount)
+		if err := database.DB.First(&student, studentID).Error; err == nil {
+			avatar := findAvatarPath(student.StoragePath)
+			students = append(students, fiber.Map{
+				"ID":             student.ID,
+				"Surname":        student.SurnameInIp,
+				"Name":           student.NameInIp,
+				"Lastname":       student.LastnameInIp,
+				"Avatar":         avatar,
+				"Total_progress": int(examinerCount) + 1, // ✏️ По умолчанию квота в 2 оценки от экзаменаторов
+			})
+		}
+	}
+
+	role := "examiner"
+	if user.ID == exam.ChairmanID {
+		role = "chairman"
+	}
+
+	return services.Render(c, "admin", "exam_procedure/exam_managment-start.html", fiber.Map{
+		"role":    role,
+		"id":      user.ID,
+		"name":    fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp),
+		"exam_id": examIDParam,
+		"List":    students, // 🔥🔥🔥 Вот здесь передаём список в шаблон
+	})
+}
+
+func findAvatarPath(storagePath string) string {
+	if storagePath == "" {
+		return ""
+	}
+	files, err := os.ReadDir(storagePath)
+	if err != nil {
+		return ""
+	}
+	for _, f := range files {
+		if strings.HasPrefix(f.Name(), "avatar") {
+			return "/uploads/" + filepath.Base(storagePath) + "/" + f.Name()
+		}
+	}
+	return ""
+}
+
+func CheckIsChairman(c *fiber.Ctx) error {
+	type Request struct {
+		ExamID uint `json:"exam_id"`
+	}
+	var req Request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Неверный формат запроса"})
+	}
+
+	userID := c.Locals("userID").(uint)
+
+	var exam models.Exam
+	if err := database.DB.First(&exam, req.ExamID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Экзамен не найден"})
+	}
+
+	isChairman := exam.ChairmanID == userID
+
+	return c.JSON(fiber.Map{
+		"isChairman": isChairman,
+	})
+}
 
 // GetUserProfile возвращает страницу профиля студента (pages/student_page.html)
 func GetUserProfile(c *fiber.Ctx) error {
@@ -962,30 +1075,39 @@ func generateApplicationNumber() string {
 	return fmt.Sprintf("06-10-%d", count+1)
 }
 
+func clearOldFiles(storagePath, prefix string) {
+	files, err := os.ReadDir(storagePath)
+	if err != nil {
+		return
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), prefix) {
+			os.Remove(filepath.Join(storagePath, file.Name()))
+		}
+	}
+}
+
 func SaveUserApplication(c *fiber.Ctx) error {
 	userID, ok := c.Locals("userID").(uint)
 	if !ok || userID == 0 {
 		return c.Status(fiber.StatusUnauthorized).SendString("Необходима авторизация")
 	}
 
-	// Чтение формы (multipart/form-data)
 	form, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Ошибка чтения формы"})
 	}
 
-	// Чтение текстовых полей
-	values := form.Value
+	// Функция для удобного получения полей
 	get := func(key string) string {
-		if val, ok := values[key]; ok && len(val) > 0 {
+		if val, ok := form.Value[key]; ok && len(val) > 0 {
 			return val[0]
 		}
 		return ""
 	}
 
-	// Обработка согласия
-	consent := get("consent")
-	if consent != "true" {
+	// Проверка согласия
+	if get("consent") != "true" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Необходимо согласие на обработку персональных данных"})
 	}
 
@@ -997,7 +1119,7 @@ func SaveUserApplication(c *fiber.Ctx) error {
 		MaritalStatus:             get("marital_status"),
 		Organization:              get("organization"),
 		JobPosition:               get("job_position"),
-		RequestedCategory:         get("requested_category"),
+		RequestedCategory:         get("requested_category"), // 🔥 сохраняем выбранную категорию
 		BasisForAttestation:       get("basis_for_attestation"),
 		ExistingCategory:          get("existing_category"),
 		ExistingCategoryTerm:      get("existing_category_term"),
@@ -1015,40 +1137,44 @@ func SaveUserApplication(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка сохранения заявки"})
 	}
 
-	// Получаем пользователя и его папку
+	// Получаем пользователя
 	var user models.User
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка получения пользователя"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Ошибка загрузки пользователя"})
 	}
 	if user.StoragePath == "" {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "У пользователя не указан путь к папке"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Не указан StoragePath"})
 	}
 
-	// Документные типы и поля формы
+	// Определяем какие документы можно загружать (паспорт — нельзя!)
 	docFields := map[string]string{
-		"diplom_img":      "диплом",
 		"diplom_jest_img": "диплом_жестовый",
-		"passport_all":    "паспорт",
 		"tk_book":         "трудовая",
 		"characteristic":  "характеристика",
 	}
 
-	// Удаление старых документов
+	// Удаляем старые записи из базы
 	for _, docType := range docFields {
 		database.DB.Where("user_id = ? AND document_type = ?", userID, docType).Delete(&models.UserDocument{})
 	}
 
-	// Сохранение новых файлов
+	// Чистим старые файлы в папке
 	for field, docType := range docFields {
+		prefix := fmt.Sprintf("%s_%s", user.JestID, sanitizeString(docType))
+		clearOldFiles(user.StoragePath, prefix)
+
+		// сохраняем новые файлы
 		files := form.File[field]
 		for i, file := range files {
 			ext := filepath.Ext(file.Filename)
 			unique := fmt.Sprintf("%s_%s_%d%s", user.JestID, sanitizeString(docType), i+1, ext)
 			savePath := filepath.Join(user.StoragePath, unique)
+
 			if err := c.SaveFile(file, savePath); err != nil {
 				log.Printf("Ошибка сохранения файла %s: %v", file.Filename, err)
 				continue
 			}
+
 			doc := models.UserDocument{
 				UserID:       userID,
 				DocumentName: file.Filename,
@@ -1058,13 +1184,16 @@ func SaveUserApplication(c *fiber.Ctx) error {
 			database.DB.Create(&doc)
 		}
 	}
+
+	// Загрузка паспорта НЕ ТРОГАЕМ! ⛔
+	// Паспорт уже должен быть на сервере.
+
 	var passport models.Passport
-	database.DB.Where("user_id = ?", user.ID).First(&passport)
+	database.DB.Where("user_id = ?", userID).First(&passport)
 
 	var edu models.EducationDocument
-	database.DB.Where("user_id = ?", user.ID).First(&edu)
+	database.DB.Where("user_id = ?", userID).First(&edu)
 
-	// В конце SaveUserApplication:
 	if err := GenerateApplicationODT(user, app, passport, edu); err != nil {
 		log.Println("Ошибка генерации ODT:", err)
 	}
@@ -1082,7 +1211,7 @@ func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
 	}
 
-	// --- Аватарка ---
+	// Аватарка
 	avatarPath := ""
 	if user.StoragePath != "" {
 		if files, err := os.ReadDir(user.StoragePath); err == nil {
@@ -1095,16 +1224,31 @@ func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 		}
 	}
 
-	// --- Последняя заявка ---
+	// Последняя заявка
 	var application models.Application
 	database.DB.Where("user_id = ?", userID).Order("created_at DESC").First(&application)
 
-	// --- Документы ---
+	// Документы
 	diplomImages := findImagesInDir(user.StoragePath, "диплом")
 	diplomJestImages := findImagesInDir(user.StoragePath, "диплом_жестовый")
 	passportImages := findImagesInDir(user.StoragePath, "паспорт")
 	tkBookImages := findImagesInDir(user.StoragePath, "трудовая")
 	characteristicImages := findImagesInDir(user.StoragePath, "характеристика")
+
+	// 🔥 Формируем список категорий
+	categories := []fiber.Map{
+		{"Value": "03.01600.01", "Text": "03.01600.01 Переводчик русского жестового языка III категории (5 уровень квалификации)"},
+		{"Value": "03.01600.02", "Text": "03.01600.02 Переводчик русского жестового языка — синхронист II категории (6 уровень квалификации)"},
+		{"Value": "03.01600.03", "Text": "03.01600.03 Переводчик русского жестового языка I категории (6 уровень квалификации)"},
+		{"Value": "03.01600.04", "Text": "03.01600.04 Переводчик русского жестового языка высшей категории — эксперт (7 уровень квалификации)"},
+	}
+
+	// Отмечаем выбранную
+	for i := range categories {
+		if categories[i]["Value"] == application.RequestedCategory {
+			categories[i]["Selected"] = true
+		}
+	}
 
 	return services.Render(c, "student", "create_application.html", fiber.Map{
 		"status":                      user.Status,
@@ -1116,7 +1260,7 @@ func GetUserCreateApplicationPage(c *fiber.Ctx) error {
 		"marital_status":              application.MaritalStatus,
 		"organization":                application.Organization,
 		"job_position":                application.JobPosition,
-		"requested_category":          application.RequestedCategory,
+		"requested_category_list":     categories, // 👉 сюда
 		"basis_for_attestation":       application.BasisForAttestation,
 		"existing_category":           application.ExistingCategory,
 		"existing_category_term":      application.ExistingCategoryTerm,
@@ -1325,42 +1469,91 @@ func GetApplicationDeclineReason(c *fiber.Ctx) error {
 
 func GetExamWaitingPage(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
-	userRole := c.Locals("userRole").(string)
 
 	var user models.User
 	if err := database.DB.First(&user, userID).Error; err != nil {
-		return c.Status(500).SendString("Ошибка загрузки пользователя")
+		return c.Status(fiber.StatusInternalServerError).SendString("Ошибка загрузки пользователя")
 	}
 
-	examID := c.Params("exam_id") // предполагаем, что в URL будет /exam/waiting/:exam_id
+	examIDParam := c.Params("exam_id")
+	examID, err := strconv.Atoi(examIDParam)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).SendString("Некорректный ID экзамена")
+	}
+
+	var exam models.Exam
+	if err := database.DB.First(&exam, examID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("Экзамен не найден")
+	}
+
+	// Определяем роль динамически
+	role := "examiner"
+	if user.ID == exam.ChairmanID {
+		role = "chairman"
+	}
 
 	return services.Render(c, "admin", "exam_procedure/exam_waiting-page.html", fiber.Map{
-		"role":    userRole,
+		"role":    role,
 		"id":      user.ID,
 		"name":    fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp),
-		"exam_id": examID,
+		"exam_id": examIDParam,
 	})
 }
-
 func GetExamStudentPage(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	userRole := c.Locals("userRole").(string)
 
-	var user models.User
-	if err := database.DB.First(&user, userID).Error; err != nil {
-		return c.Status(500).SendString("Ошибка загрузки пользователя")
-	}
-
-	examID := c.Params("exam_id") // например, из URL /exam/student/:exam_id/:student_id
+	examID := c.Params("exam_id")
 	studentID := c.Params("student_id")
 
-	return services.Render(c, "admin", "exam_procedure/exam_person-page.html", fiber.Map{
-		"role":       userRole,
-		"id":         user.ID,
-		"name":       fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp),
-		"exam_id":    examID,
-		"student_id": studentID, // можно использовать в шаблоне или JS
-	})
+	var student models.User
+	if err := database.DB.First(&student, studentID).Error; err != nil {
+		return c.Status(404).SendString("Студент не найден")
+	}
+
+	var application models.Application
+	if err := database.DB.Where("user_id = ?", studentID).Order("created_at DESC").First(&application).Error; err != nil {
+		return c.Status(404).SendString("Заявление студента не найдено")
+	}
+
+	var exam models.Exam
+	if err := database.DB.First(&exam, examID).Error; err != nil {
+		return c.Status(404).SendString("Экзамен не найден")
+	}
+
+	examJestID := strings.Split(exam.JestID, "-")
+	studentJestID := strings.Split(student.JestID, "-")
+	protocolNumber := fmt.Sprintf("%s-%s-%s/%s", examJestID[0], examJestID[1], examJestID[2], studentJestID[len(studentJestID)-1])
+
+	criteria := []map[string]interface{}{
+		{"id": 1, "question": "Задание 1 Ответ по билету", "score": nil},
+		{"id": 2, "question": "Обратный перевод (Последовательный письменный, Жестовый → русский)", "score": nil},
+		{"id": 3, "question": "Прямой перевод (Синхронный, Русский → жестовый)", "score": nil},
+		{"id": 4, "question": "Прямой перевод (Последовательный, Русский → жестовый)", "score": nil},
+		{"id": 5, "question": "Обратный перевод (Синхронный устный, Русский → жестовый)", "score": nil},
+		{"id": 6, "question": "Четкость исполнения жестов", "score": nil},
+		{"id": 7, "question": "Скорость перевода", "score": nil},
+		{"id": 8, "question": "Мимика (Выразительность лица)", "score": nil},
+		{"id": 9, "question": "Артикуляция", "score": nil},
+		{"id": 10, "question": "Лексический запас жестов", "score": nil},
+		{"id": 11, "question": "Внешний вид согласно дресс-коду", "score": nil},
+	}
+
+	data := fiber.Map{
+		"role":           userRole,
+		"id":             userID,
+		"name":           student.SurnameInIp + " " + student.NameInIp + " " + student.LastnameInIp,
+		"exam_id":        examID,
+		"student_id":     studentID,
+		"protocol":       protocolNumber,
+		"criteria":       criteria,
+		"CurrentDate":    time.Now().Format("2006-01-02"),
+		"Qualification":  application.RequestedCategory, // Из Application
+		"Specialization": application.BasisForAttestation,
+		"Avatar":         findAvatarPath(student.StoragePath),
+	}
+
+	return services.Render(c, "admin", "exam_procedure/exam_person-page.html", data)
 }
 
 func GenerateApplicationODT(user models.User, app models.Application, passport models.Passport, edu models.EducationDocument) error {

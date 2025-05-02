@@ -59,7 +59,7 @@
             </div>
         </header>
 
-        <main class="main">
+        <main class="main main--admin">
             <nav class="menu">
                 <ul class="menu__list">
                     <li class="menu__item menu__item--active">
@@ -110,14 +110,9 @@
                                 <label class="profile__label" for="requested_category">Запрашиваемая категория
                                     аттестации:</label>
                                 <select class="profile__selector" name="requested_category" id="requested_category">
-                                    <option value="03.01600.01">03.01600.01 Переводчик русского жестового языка III
-                                        категории (5 уровень квалификации)</option>
-                                    <option value="03.01600.02">03.01600.02 Переводчик русского жестового языка —
-                                        синхронист II категории (6 уровень квалификации)</option>
-                                    <option value="03.01600.03">03.01600.03 Переводчик русского жестового языка I
-                                        категории (6 уровень квалификации)</option>
-                                    <option value="03.01600.04">03.01600.04 Переводчик русского жестового языка высшей
-                                        категории — эксперт (7 уровень квалификации)</option>
+                                    {{range .requested_category_list}}
+                                    <option value="{{.Value}}" {{if .Selected}}selected{{end}}>{{.Text}}</option>
+                                    {{end}}
                                 </select>
                             </div>
                         </div>
@@ -255,11 +250,13 @@
                             <label class="profile__confirm-label" for="memberships">Согласие на обработку ваших
                                 персональных
                                 данных:</label>
-                                <input type="checkbox" name="consent" value="true" {{if .consent}}checked{{end}}>
+                            <input type="checkbox" name="consent" value="true" {{if .consent}}checked{{end}}>
                         </div>
                         <div class="profile__agree">
-                            <button type="button" class="profile__agree-button" id="agree_application">Подтвердить заявление</button>
-                            <button type="button" class="profile__decline-button" id="decline_application">Отклонить заявление</button>
+                            <button type="button" class="profile__agree-button" id="agree_application">Подтвердить
+                                заявление</button>
+                            <button type="button" class="profile__decline-button"
+                                id="decline_application_button">Отклонить заявление</button>
                         </div>
                     </div>
                 </form>
@@ -275,22 +272,261 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
     <script src="../../../scripts/student_script.js"></script>
     <script src="../../../scripts/admin_script.js"></script>
-    
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-          document.querySelectorAll("input, textarea, select").forEach(el => {
-            if (el.type === "file") {
-              el.disabled = true;
-            } else if (el.tagName === "SELECT") {
-              el.disabled = true;
-            } else if (el.type === "checkbox" || el.type === "radio") {
-              el.disabled = true;
-            } else {
-              el.readOnly = true;
-            }
-          });
+            document.querySelectorAll("input, textarea, select").forEach(el => {
+                if (el.type === "file") {
+                    el.disabled = true;
+                } else if (el.tagName === "SELECT") {
+                    el.disabled = true;
+                } else if (el.type === "checkbox" || el.type === "radio") {
+                    el.disabled = true;
+                } else {
+                    el.readOnly = true;
+                }
+            });
         });
-      </script>
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll("input, textarea, select").forEach(el => {
+                if (el.type === "file") {
+                    el.disabled = true;
+                } else if (el.tagName === "SELECT") {
+                    el.disabled = true;
+                } else if (el.type === "checkbox" || el.type === "radio") {
+                    el.disabled = true;
+                } else {
+                    el.readOnly = true;
+                }
+            });
+
+            // 🔥 Новый код: клик по картинке — скачивание файла
+            document.querySelectorAll(".image-preview img").forEach(img => {
+                img.style.cursor = "pointer";
+                img.addEventListener("click", () => {
+                    const link = document.createElement('a');
+                    link.href = img.src;
+                    link.download = img.alt || "document"; // название файла
+                    link.target = "_blank";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            const appID = $('body').data('id');
+
+            const postRequest = (url, data, successRedirect) => {
+                if (!appID) {
+                    alert("Ошибка: ID заявки не найден");
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (res) {
+                        if (res.success) {
+                            window.location.href = successRedirect;
+                        } else {
+                            alert("Ошибка при обработке запроса");
+                        }
+                    },
+                    error: function (xhr) {
+                        alert("Ошибка сервера: " + (xhr.responseText || xhr.statusText));
+                    }
+                });
+            };
+        });
+        $('#decline_application_button').on('click', function (e) {
+            e.preventDefault();
+            openModal("decline_application_modal");
+        });
+        $(document).on('submit', '#decline_application-form', function (e) {
+            e.preventDefault();  // Отменяем стандартное поведение формы
+
+            // Если кнопка отправки неактивна
+            if ($('.popup__send').hasClass('popup__send--disabled')) return;
+
+            const reasons = [];
+            // Собираем причины отказа
+            $('input[name="reason"]:checked').each(function () {
+                reasons.push($(this).val());
+            });
+
+            const explanation = $('textarea[name="explanation"]').val();
+            const appID = $('body').data('id');
+
+            if (!appID) {
+                alert("Ошибка: не найден ID заявления");
+                return;
+            }
+
+            // Отправляем данные на сервер
+            apiPost("/admin/api/application/decline", { id: appID, reasons, explanation })
+                .done(() => window.location.href = "/admin/exam/students")  // Переход на страницу после успеха
+                .fail(xhr => alert("Ошибка при отправке: " + xhr.responseText));  // Обработка ошибок
+        });
+        const adminModals = {
+            decline_form: `
+    <div id="decline_form" class="popup">
+        <div class="popup__body">
+            <div class="popup__content">
+                <div class="popup__header">
+                    <a href="#" class="popup__close close-popup"><span></span></a>
+                    <h2 class="popup__title">Укажите причину отказа:</h2>
+                </div>
+                <form id="decline-forma">
+                    <label><input type="checkbox" name="reason" value="invalid_name"> Неверно указанное ФИО</label>
+                    <label><input type="checkbox" name="reason" value="invalid_contacts"> Неверно указанные контакты</label>
+                    <label><input type="checkbox" name="reason" value="no_documents"> Не все документы</label>
+                    <textarea name="explanation" placeholder="Пояснение"></textarea>
+                    <button type="submit">Отправить</button>
+                </form>
+            </div>
+        </div>
+    </div>`,
+            decline_application_modal: `
+<div id="decline_application_modal" class="popup">
+    <div class="popup__body">
+        <div class="popup__content">
+            <div class="popup__header">
+                <a href="#" class="popup__close close-popup"><span></span></a>
+                <h2 class="popup__title">Укажите причину отказа:</h2>
+            </div>
+            <form id="decline_application-form" class="popup__form">
+                <div class="popup__checker">
+                    <div class="popup__list">
+                        <label class="popup__item">
+                            <input type="checkbox" name="reason" value="invalid_name"> Неверно указанные данные
+                        </label>
+                        <label class="popup__item">
+                            <input type="checkbox" name="reason" value="invalid_contacts"> Прикреплены не соответствующие фото
+                        </label>
+                        <label class="popup__item">
+                            <input type="checkbox" name="reason" value="no_documents"> Прикреплены не все документы
+                        </label>
+                        <div class="popup__textarea">
+                            <textarea placeholder="Напишите пояснение" name="explanation"></textarea>
+                        </div>
+                    </div>
+                    <div class="popup__send popup__send">
+                        <button type="submit" class="">Отправить</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+`,
+
+            'start-exam': `
+<div id="start-exam" class="popup">
+    <div class="popup__body">
+        <div class="popup__content">
+            <div class="popup__header">
+                <a href="#" class="popup__close close-popup"><span></span></a>
+                <h2 class="popup__title">Экзаменаторы подключившиеся к экзамену:</h2>
+            </div>
+            <div class="popup__form">
+                <div class="popup__examiner-list" id="examiner_list">
+                    <!-- сюда динамически вставим экзаменаторов -->
+                </div>
+                <div class="popup__start">
+                    <button type="button" id="start_exam_confirm">Начать экзамен</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>`,
+
+        };
+        const apiPost = (url, data) => {
+            return $.ajax({
+                type: 'POST',
+                url,
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+            });
+        };
+
+        $('#agree_application').on('click', function (e) {
+            e.preventDefault();
+
+            const appID = $('body').data('id');
+
+            if (!appID) {
+                alert("Ошибка: не удалось получить ID заявления");
+                return;
+            }
+
+            $.ajax({
+                url: '/admin/api/application/approve',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ id: appID }),
+                success: function (response) {
+                    window.location.href = "/admin/exam/students";
+                },
+                error: function (xhr) {
+                    alert("Ошибка подтверждения: " + xhr.responseText);
+                }
+            });
+        });
+
+        function openModal(name) {
+            const modalTemplate = adminModals[name];  // Получаем шаблон модалки
+            if (!modalTemplate) {
+                console.error("Модалка не найдена:", name);
+                return;
+            }
+
+            // Удаляем предыдущую модалку, если такая уже существует
+            $('.popup#' + name).remove();
+            // Добавляем новую модалку в контейнер
+            $('.wrapper').append(modalTemplate);
+
+            // Добавляем классы для отображения модалки
+            $('#' + name).addClass('popup__open');
+            $('body').addClass('modal');
+
+            // Закрытие модалки по крестику
+            $('#' + name).find('.popup__close').on('click', function (e) {
+                e.preventDefault();
+                closeModal(name);
+            });
+
+            // Закрытие по клику вне модалки
+            $(document).on('click.modal', `#${name}`, function (e) {
+                if (!$(e.target).closest('.popup__content').length) {
+                    closeModal(name);
+                }
+            });
+
+            // Закрытие по клавише Escape
+            $(document).on('keydown.modal', function (e) {
+                if (e.key === 'Escape') {
+                    closeModal(name);
+                }
+            });
+        }
+
+
+        function closeModal(name) {
+            $('.popup#' + name).remove(); // ❗ Тоже удаляем только popup по id
+            $('body').removeClass('modal');
+            $(document).off('click.modal');
+            $(document).off('keydown.modal');
+        }
+    </script>
+
 </body>
 
 </html>

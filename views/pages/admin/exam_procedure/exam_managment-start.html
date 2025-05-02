@@ -1,66 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление экзаменом</title>
     <link rel="stylesheet" href="../../../style/style.css">
     <link rel="stylesheet" href="../../../style/admin/exam_procedure.css">
-    <title>Document</title>
+    <link rel="stylesheet" href="../../../style/admin/global.css">
 </head>
 
-<body>
-<div class="wrapper">
-    <main class="main">
-        <section class="exam__window">
-            <div class="exam__header">
-                <h2>
-                    Управление экзаменом
-                </h2>
-            </div>
-            <div class="exam__body">
-                <div class="exam__start">
-                    <button class="exam__start-button">
-                        Начать экзамен
-                    </button>
+<body data-role="chairman" data-id="{{.id}}" data-name="{{.name}}" data-exam-id="{{.exam_id}}">
+    <div class="wrapper">
+        <main class="main main--exam">
+            <section class="exam__window">
+                <div class="exam__header">
+                    <h2>Экзамен: Управление студентами</h2>
                 </div>
-                <div id="online_list" class="profile__online-box">
-                    <h3>Подключились экзаменаторы:</h3>
-                    <ul id="online_examiners" class="profile__online-list"></ul>
-                </div>                
-                <div class="exam__list">
-                    {{range .List}}
-                    <div class="exam__item" data-student-id="{{.ID}}">
-                        <div class="exam__item-name">
-                            <img src="{{.Avatar}}" alt="">
-                            <h2>
-                                {{.Surname}} {{.Name}} {{.Lastname}}
-                            </h2>
+                <div class="exam__body">
+                    <div class="exam__list">
+                        {{range .List}}
+                        <!-- exam_managment-start.html -->
+                        <div class="exam__item student-item" id="student-{{.ID}}" data-id="{{.ID}}">
+                            <div class="exam__item-name">
+                                <img src="{{.Avatar}}" alt="">
+                                <h2>{{.Surname}} {{.Name}} {{.Lastname}}</h2>
+                            </div>
+                            <div class="exam__progress-bar-container">
+                                <div class="exam__progress-bar-fill" style="width: 0%; background-color: #ddd;"></div>
+                                <!-- Серый цвет для пустого прогресса -->
+                                <div class="tooltip" id="tooltip-{{.ID}}">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Экзаменатор</th>
+                                                <th>Статус</th>
+                                                <th>Оценка</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
-                        <div class="exam__item-progress">
-                            <input type="number" id="current_progress-{{.ID}}" value="0"> / <input type="number"
-                                                                                                   id="total_progress-{{.ID}}"
-                                                                                                   value="{{.Total_progress}}">
-                        </div>
+                        {{end}}
                     </div>
-                    {{end}}
+                    <div class="exam__discuss">
+                        <button class="exam__discuss-button">Начать обсуждение</button>
+                    </div>
                 </div>
-                <div class="exam__discuss">
-                    <button class="exam__discuss-button">
-                        Начать обсуждение
-                    </button>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer"></footer>
-</div>
+            </section>
+        </main>
+    </div>
 </body>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="../../scripts/exam.js"></script>
-<script src="../../scripts/socket.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.4/inputmask.min.js"></script>
+<script src="../../../scripts/exam.js"></script> <!-- Ваш основной скрипт -->
+<script src="../../../scripts/socket.js"></script>
 
 </html>

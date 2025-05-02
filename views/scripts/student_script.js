@@ -857,6 +857,68 @@ $('.aproove_form').on('click', function (e) {
 
 // этот код нужен, чтобы обновлять access_token "в фоне"
 const refreshAccessToken = () => {
-    $.post("/refresh").fail(() => window.location.href = "/");
+    $.ajax({
+        type: 'POST',
+        url: '/refresh',
+        xhrFields: { withCredentials: true }, // вот это очень важно!!
+        success: () => console.log("Токен успешно обновлен"),
+        error: () => window.location.href = "/"
+    });
 };
+
 setInterval(refreshAccessToken, 10 * 60 * 1000);
+$(document).on('click', '.start-exam-btn', function (e) {
+    e.preventDefault();
+
+    const examId = $(this).data('exam-id');
+    const userId = $("body").data('id');
+    const userName = $("body").data('name');
+
+    $.ajax({
+        type: "POST",
+        url: "/user/exam/check-chairman",
+        contentType: "application/json",
+        data: JSON.stringify({ exam_id: examId }),
+        success: function (response) {
+            const isChairman = response.isChairman;
+            const role = isChairman ? "chairman" : "examiner";
+
+            initSocket(role, userId, userName, examId);
+
+            if (isChairman) {
+                window.location.href = `/user/exam/start-page/${examId}`; // <-- исправил тут
+            } else {
+                window.location.href = `/user/exam/waiting/${examId}`;
+            }
+        },
+        error: function () {
+            console.error("Ошибка проверки роли председателя");
+        }
+    });
+});
+
+$(document).on('click', '#send_grade', function (e) {
+    e.preventDefault();
+
+    const examId = $("body").data('exam-id');   // exam_id из <body data-exam-id="...">
+    const studentId = $("body").data('student-id'); // student_id из <body data-student-id="...">
+
+    if (!examId || !studentId) {
+        console.error("Нет exam_id или student_id");
+        return;
+    }
+
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: "progress_update",
+            data: {
+                exam_id: examId,
+                student_id: studentId,
+                current_progress: 1  // 🔥 Тут ставь "1", если экзаменатор отправил свою оценку (1 голос)
+            }
+        }));
+    } else {
+        console.error("Сокет не подключён");
+    }
+});
+

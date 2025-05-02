@@ -1,25 +1,38 @@
 .main {
   position: relative;
   width: 100%;
-  height: -webkit-fit-content;
-  height: -moz-fit-content;
-  height: fit-content;
+  max-width: 1480px;
+  margin: auto;
+  padding: 20px;
+  display: flex;
   -webkit-box-flex: 1;
       -ms-flex: 1 4 auto;
           flex: 1 4 auto;
-  margin: auto;
-  margin-top: 140px;
-  max-width: 1480px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-orient: horizontal;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: row;
-          flex-direction: row;
-  padding: 20px;
   overflow: hidden;
 }
+
+/* Для страницы управления экзаменом */
+.main.main--exam {
+  flex-direction: column;
+  height: 100vh; /* Использовать всю высоту */
+  margin-top: 0;
+}
+
+/* Для страницы админки */
+.main.main--admin {
+  flex-direction: row;
+  height: fit-content; /* Автоматическая высота */
+  margin-top: 140px; /* Отступ для шапки */
+}
+
+
+.exam__window {
+  flex-grow: 1; /* Применяем гибкость для подстраивания сектора под оставшееся пространство */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 
 .header__menu-icon {
   display: none;

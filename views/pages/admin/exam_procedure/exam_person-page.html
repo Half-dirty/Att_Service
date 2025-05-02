@@ -4,55 +4,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../../style/style.css">
-    <link rel="stylesheet" href="../../../style/admin/exam_procedure.css">
-    <title>Document</title>
+    <link rel="stylesheet" href="../../../../style/style.css">
+    <link rel="stylesheet" href="../../../../style/admin/exam_procedure.css">
+    <title>Оценочный лист</title>
 </head>
 
-<body data-role="{{.role}}" data-id="{{.id}}" data-name="{{.name}}" data-exam-id="{{.exam_id}}">
+<body data-role="{{.role}}" data-id="{{.id}}" data-name="{{.name}}" data-exam-id="{{.exam_id}}"
+    data-student-id="{{.student_id}}">
     <div class="wrapper">
-        <main class="main">
+        <main class="main main--exam">
             <section class="exam__window">
                 <div class="exam__header">
-                    <h2>
-                        Оценочный лист
-                    </h2>
+                    <h2>Оценочный лист</h2>
                     <div class="exam__protocol">
                         <div class="exam__protocol-column">
-                            <label for="protocol_num">
-                                К Протоколу №
-                            </label>
+                            <label for="protocol_num">К Протоколу №</label>
                             <input type="text" placeholder="__-__-__" name="protocol_num" id="protocol_num"
-                                inputmode="text" readonly>
+                                inputmode="text" readonly value="{{.protocol}}">
                         </div>
                         <div class="exam__protocol-column">
-                            <label for="protocol_date">
-                                / от
-                            </label>
-                            <input type="date" name="" id="protocol_date" readonly>
+                            <label for="protocol_date">от</label>
+                            <input type="date" name="" id="protocol_date" readonly value="{{.CurrentDate}}">
                         </div>
                     </div>
                 </div>
                 <div class="exam__body">
-                    <div class="exam__person" data-id="{{.ID}}">
+                    <div class="exam__person" data-id="{{.student_id}}">
                         <div class="exam__person-info">
                             <div class="exam__person-placeholder">
-                                <label>
-                                    Аттестуемый:
-                                </label>
-                                <input type="text" id="person_fio" value="{{.Surname}} {{.Name}} {{.Lastname}}" readonly>
+                                <label>Аттестуемый:</label>
+                                <input type="text" id="person_fio" value="{{.name}}" readonly>
                             </div>
                             <div class="exam__person-placeholder">
-                                <label>
-                                    Запрашиваемая квалификация:
-                                </label>
-                                <input type="text" id="person_quality" readonly>
+                                <label>Запрашиваемая квалификация:</label>
+                                <input type="text" id="person_quality" readonly value="{{.Qualification}}">
                             </div>
                             <div class="exam__person-placeholder">
-                                <label>
-                                    Заявленная специализация:
-                                </label>
-                                <input type="text" id="person_special" readonly>
+                                <label>Заявленная специализация:</label>
+                                <input type="text" id="person_special" readonly value="{{.Specialization}}">
                             </div>
                         </div>
                         <div class="exam__person-result">
@@ -60,7 +49,7 @@
                             <input type="text" readonly id="total">
                         </div>
                         <div class="exam__person-img">
-                            <img src="../../../pictures/Generic avatar.png" alt="">
+                            <img src="{{.Avatar}}" alt="Аватар студента">
                         </div>
                     </div>
                     <div class="exam__question">
@@ -83,401 +72,45 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {{range $index, $criterion := .criteria}}
                                 <tr class="exam__question-row">
-                                    <td class="exam__question-marks">1</td>
-                                    <td class="exam__question-text">Задание 1 Ответ по билету</td>
+                                    <td class="exam__question-marks">{{$index | add1}}</td>
+                                    <td class="exam__question-text">{{$criterion.question}}</td>
+                                    {{range $score := slice 0 1 2 3 4 5}}
                                     <td class="exam__question-marks">
-                                        <input type="radio" name="q1" value="0" id="q1-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q1-0"></div>
+                                        <input type="radio" name="q{{$criterion.id}}" value="{{$score}}"
+                                            id="q{{$criterion.id}}-{{$score}}" hidden>
+                                        <div class="exam__radio-label" data-radio-for="q{{$criterion.id}}-{{$score}}">
+                                        </div>
                                     </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q1" value="1" id="q1-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q1-1"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q1" value="2" id="q1-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q1-2"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q1" value="3" id="q1-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q1-3"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q1" value="4" id="q1-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q1-4"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q1" value="5" id="q1-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q1-5"></div>
-                                    </td>
+                                    {{end}}
                                 </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">2</td>
-                                    <td class="exam__question-text">Обратный перевод (Последовательный письменный,
-                                        Жестовый → русский)</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q2" value="0" id="q2-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q2-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q2" value="1" id="q2-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q2-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q2" value="2" id="q2-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q2-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q2" value="3" id="q2-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q2-3"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q2" value="4" id="q2-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q2-4"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q2" value="5" id="q2-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q2-5"></div>
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">3</td>
-                                    <td class="exam__question-text">Прямой перевод (Синхронный, Русский → жестовый)</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q3" value="0" id="q3-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q3-0"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q3" value="1" id="q3-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q3-1"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q3" value="2" id="q3-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q3-2"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q3" value="3" id="q3-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q3-3"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q3" value="4" id="q3-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q3-4"></div>
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q3" value="5" id="q3-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q3-5"></div>
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">4</td>
-                                    <td class="exam__question-text">Прямой перевод (Последовательный, Русский →
-                                        жестовый)</td>
-                                    <td class="exam__question-marks">
-
-                                        <input type="radio" name="q4" value="0" id="q4-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q4-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-
-                                        <input type="radio" name="q4" value="1" id="q4-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q4-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-
-                                        <input type="radio" name="q4" value="2" id="q4-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q4-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-
-                                        <input type="radio" name="q4" value="3" id="q4-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q4-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-
-                                        <input type="radio" name="q4" value="4" id="q4-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q4-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-
-                                        <input type="radio" name="q4" value="5" id="q4-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q4-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">5</td>
-                                    <td class="exam__question-text">Обратный перевод (Синхронный устный, Русский →
-                                        жестовый)</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q5" value="0" id="q5-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q5-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q5" value="1" id="q5-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q5-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q5" value="2" id="q5-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q5-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q5" value="3" id="q5-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q5-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q5" value="4" id="q5-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q5-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q5" value="5" id="q5-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q5-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">6</td>
-                                    <td class="exam__question-text">Четкость исполнения жестов</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q6" value="0" id="q6-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q6-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q6" value="1" id="q6-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q6-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q6" value="2" id="q6-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q6-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q6" value="3" id="q6-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q6-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q6" value="4" id="q6-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q6-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q6" value="5" id="q6-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q6-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">7</td>
-                                    <td class="exam__question-text">Скорость перевода</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q7" value="0" id="q7-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q7-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q7" value="1" id="q7-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q7-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q7" value="2" id="q7-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q7-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q7" value="3" id="q7-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q7-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q7" value="4" id="q7-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q7-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q7" value="5" id="q7-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q7-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">8</td>
-                                    <td class="exam__question-text">Мимика (Выразительность лица)</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q8" value="0" id="q8-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q8-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q8" value="1" id="q8-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q8-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q8" value="2" id="q8-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q8-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q8" value="3" id="q8-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q8-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q8" value="4" id="q8-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q8-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q8" value="5" id="q8-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q8-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">9</td>
-                                    <td class="exam__question-text">Артикуляция</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q9" value="0" id="q9-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q9-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q9" value="1" id="q9-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q9-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q9" value="2" id="q9-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q9-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q9" value="3" id="q9-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q9-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q9" value="4" id="q9-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q9-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q9" value="5" id="q9-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q9-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">10</td>
-                                    <td class="exam__question-text">Лексический запас жестов</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q10" value="0" id="q10-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q10-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q10" value="1" id="q10-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q10-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q10" value="2" id="q10-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q10-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q10" value="3" id="q10-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q10-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q10" value="4" id="q10-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q10-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q10" value="5" id="q10-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q10-5"></div>
-
-                                    </td>
-                                </tr>
-                                <tr class="exam__question-row">
-                                    <td class="exam__question-marks">11</td>
-                                    <td class="exam__question-text">Внешний вид согласно дресс-коду</td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q11" value="0" id="q11-0" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q11-0"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q11" value="1" id="q11-1" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q11-1"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q11" value="2" id="q11-2" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q11-2"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q11" value="3" id="q11-3" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q11-3"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q11" value="4" id="q11-4" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q11-4"></div>
-
-                                    </td>
-                                    <td class="exam__question-marks">
-                                        <input type="radio" name="q11" value="5" id="q11-5" hidden>
-                                        <div class="exam__radio-label" data-radio-for="q11-5"></div>
-
-                                    </td>
-                                </tr>
+                                {{end}}
                             </tbody>
                         </table>
                     </div>
                     <div class="exam__recomendation">
-                        <h2>
-                            Рекомендации:
-                        </h2>
+                        <h2>Рекомендации:</h2>
                         <textarea class="exam__textarea exam__textarea-auto_expand" rows="1"
                             oninput="adjustHeight(this)" name="recomendation" id="recomendation"></textarea>
                     </div>
                     <div class="exam__solution">
                         <h1>Решение о присвоении квалификации:</h1>
                         <div class="exam__solution-qualification">
-                            <h2>
-                                Присваиваемая квалификация:
-                            </h2>
-                            <select name="qualification" id="qualification">
-                                <option value="03.01600.01">03.01600.01 Переводчик русского жестового языка III категории (5
-                                    уровень квалификации)</option>
-                                <option value="03.01600.02">03.01600.02 Переводчик русского жестового языка — синхронист II
-                                    категории (6 уровень квалификации)</option>
+                            <h2>Присваиваемая квалификация:</h2>
+                            <select class="profile__selector" name="qualification" id="qualification">
+                                <option value="03.01600.01">03.01600.01 Переводчик русского жестового языка III
+                                    категории (5 уровень квалификации)</option>
+                                <option value="03.01600.02">03.01600.02 Переводчик русского жестового языка — синхронист
+                                    II категории (6 уровень квалификации)</option>
+                                <option value="03.01600.03">03.01600.03 Переводчик русского жестового языка I категории
+                                    (6 уровень квалификации)</option>
+                                <option value="03.01600.04">03.01600.04 Переводчик русского жестового языка высшей
+                                    категории — эксперт (7 уровень квалификации)</option>
                             </select>
                         </div>
                         <div class="exam__solution-specialization">
-                            <h2>
-                                Допуск (Специализация):
-                            </h2>
+                            <h2>Допуск (Специализация):</h2>
                             <select name="specialization" id="specialization">
                                 <option value="медицинское сопровождение">медицинское сопровождение</option>
                                 <option value="образование">образование</option>
@@ -485,14 +118,10 @@
 
                             <div class="exam__buttons">
                                 <div class="exam__buttons-abstain">
-                                    <label for="exam__abstain"></label>
-                                    <input type="checkbox" id="abstain">
-                                    Воздержаться
-                                    </input>
+                                    <input type="checkbox" id="exam__abstain">
+                                    <label for="exam__abstain">Воздержаться</label>
                                 </div>
-                                <button class="exam__buttons-subscribe" id="subscribe_button">
-                                    Подписать
-                                </button>
+                                <button class="exam__buttons-subscribe" id="subscribe_button">Подписать</button>
                             </div>
                         </div>
                     </div>
@@ -506,8 +135,7 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
-<script src="../../scripts/exam.js"></script>
-<script src="../../scripts/socket.js"></script>
-
+<script src="../../../../scripts/exam.js"></script>
+<script src="../../../../scripts/socket.js"></script>
 
 </html>

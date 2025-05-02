@@ -11,14 +11,12 @@
 
 <body data-role="{{.role}}" data-id="{{.id}}" data-name="{{.name}}" data-exam-id="{{.exam_id}}">
     <div class="wrapper">
-        <main class="main">
+        <main class="main main--exam">
             <section class="exam__window">
                 <div class="exam__body">
                     <div class="exam__body-center_text">
-                        <h1>
-                            Ожидание дальнейших действий председателя
-                        </h1>
-                    </div>
+                        <h1 id="chairman_status_text">Председатель отсутствует</h1>
+                    </div>          
                 </div>
             </section>
         </main>
@@ -28,7 +26,22 @@
 </body>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
 <script src="../../../scripts/exam.js"></script>
+<script src="../../../scripts/socket.js"></script>
+<script>
+    $(document).ready(function () {
+        const role = $("body").data("role");
+        const id = $("body").data("id");
+        const name = $("body").data("name");
+        const examId = $("body").data("exam-id");
+    
+        if (role && id && name && examId) {
+            initSocket(role, id, name, examId); // ← снова инициализируем подключение
+        }
+    });
+    </script>
+    
 
 
 </html>
