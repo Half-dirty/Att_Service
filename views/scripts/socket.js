@@ -331,3 +331,27 @@ function redirect(data) {
         console.warn("Нет URL для редиректа");
     }
 }
+
+const refreshAccessToken = () => {
+    $.ajax({
+        type: 'POST',
+        url: '/refresh',
+        xhrFields: { withCredentials: true }, // вот это очень важно!!
+        success: function (res) {
+            if (res.success === true) {
+                console.log("Токен успешно обновлен");
+            } else {
+                console.warn("Ошибка при обновлении токена:", res);
+                window.location.href = "/";
+            }
+        }
+    });
+};
+
+
+$(document).ready(function () {
+    setTimeout(refreshAccessToken, 1000); // через 1 секунду
+    setInterval(refreshAccessToken, 10 * 60 * 1000);
+});
+
+

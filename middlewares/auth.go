@@ -207,10 +207,10 @@ func tryRefreshToken(c *fiber.Ctx) (*models.User, error) {
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    newAccessToken,
-		HTTPOnly: true,
+		HTTPOnly: false,
 		Secure:   false,
 		SameSite: "Lax",
-		Expires:  time.Now().Add(60 * time.Minute),
+		Expires:  time.Now().Add(15 * time.Minute),
 	})
 
 	return &user, nil

@@ -135,18 +135,28 @@ $('#registration-button').on('click', function (e) {
 })
 
 
-setInterval(() => {
-    const token = localStorage.getItem("refresh_token");
-    if (!token) return;
-
+const refreshAccessToken = () => {
     $.ajax({
-        type: "POST",
-        url: "/refresh",
-        contentType: "application/json",
-        data: JSON.stringify({ refresh_token: token }),
-        success: (res) => console.log("Access token обновлён")
+        type: 'POST',
+        url: '/refresh',
+        xhrFields: { withCredentials: true }, // вот это очень важно!!
+        success: function (res) {
+            if (res.success === true) {
+                console.log("Токен успешно обновлен");
+            } else {
+                console.warn("Ошибка при обновлении токена:", res);
+                window.location.href = "/";
+            }
+        }
     });
-}, 10 * 60 * 1000);
+};
+
+
+$(document).ready(function () {
+    setTimeout(refreshAccessToken, 1000); // через 1 секунду
+    setInterval(refreshAccessToken, 10 * 60 * 1000);
+});
+
 
 
 

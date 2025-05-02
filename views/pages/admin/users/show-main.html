@@ -60,6 +60,15 @@
                     <li class="menu__item">
                         <a href="/admin/student/documents" class="menu__button">Документы</a>
                     </li>
+                    {{if .showButtons}}
+                    <li class="menu__item--back">
+                        <a href="/admin/user/application">назад</a>
+                    </li>
+                    {{else}}
+                    <li class="menu__item--back">
+                        <a href="/admin/user/list">назад</a>
+                    </li>
+                    {{end}}
                 </ul>
             </nav>
 

@@ -861,12 +861,17 @@ const refreshAccessToken = () => {
         type: 'POST',
         url: '/refresh',
         xhrFields: { withCredentials: true }, // вот это очень важно!!
-        success: () => console.log("Токен успешно обновлен"),
-        error: () => window.location.href = "/"
+        success: function (res) {
+            if (res.success === true) {
+                console.log("Токен успешно обновлен");
+            } else {
+                console.warn("Ошибка при обновлении токена:", res);
+                window.location.href = "/";
+            }
+        }
     });
 };
 
-setInterval(refreshAccessToken, 10 * 60 * 1000);
 $(document).on('click', '.start-exam-btn', function (e) {
     e.preventDefault();
 
@@ -921,4 +926,11 @@ $(document).on('click', '#send_grade', function (e) {
         console.error("Сокет не подключён");
     }
 });
+
+$(document).ready(function () {
+    setTimeout(refreshAccessToken, 1000); // через 1 секунду
+    setInterval(refreshAccessToken, 10 * 60 * 1000);
+});
+
+
 

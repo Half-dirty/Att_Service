@@ -15,10 +15,10 @@ type Exam struct {
 	ChairmanID      uint
 	SecretaryID     uint
 	Quorum          int
-	JestID          string `gorm:"unique;size:20;column:jest_id"`
+	JestID          string `gorm:"size:20;column:jest_id"`
 
-	Examiners []User `gorm:"many2many:exam_examiners;"`
-	Students  []User `gorm:"many2many:exam_students;"`
+	Examiners []ExamExaminer `gorm:"foreignKey:ExamID"`
+	Students  []ExamStudent  `gorm:"foreignKey:ExamID"`
 }
 
 type ExamGrade struct {

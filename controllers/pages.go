@@ -67,10 +67,19 @@ func Login(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name:     "access_token",
 		Value:    accessToken,
-		HTTPOnly: true,
+		HTTPOnly: false,
 		Secure:   false,
 		SameSite: "Lax",
-		Expires:  time.Now().Add(60 * time.Minute),
+		Expires:  time.Now().Add(15 * time.Minute),
+	})
+	// Устанавливаем refresh-токен в куки
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		HTTPOnly: true,  // Сделайте его доступным только для серверных запросов
+		Secure:   false, // Используйте true, если работаете с HTTPS
+		SameSite: "Lax",
+		Expires:  time.Now().Add(7 * 24 * time.Hour), // Refresh токен на 7 дней
 	})
 
 	// Ответ клиенту
@@ -132,7 +141,7 @@ func Refresh(c *fiber.Ctx) error {
 		HTTPOnly: false,
 		Path:     "/",
 		Secure:   false, // ❗ На HTTPS поставить true
-		SameSite: "Strict",
+		SameSite: "Lax",
 		Expires:  time.Now().Add(15 * time.Minute), // Access токен короткий
 	})
 	c.Cookie(&fiber.Cookie{
@@ -141,7 +150,7 @@ func Refresh(c *fiber.Ctx) error {
 		HTTPOnly: false,
 		Path:     "/",
 		Secure:   false,
-		SameSite: "Strict",
+		SameSite: "Lax",
 		Expires:  time.Now().Add(7 * 24 * time.Hour), // Refresh токен на 7 дней
 	})
 

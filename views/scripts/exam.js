@@ -205,9 +205,20 @@ const refreshAccessToken = () => {
         type: 'POST',
         url: '/refresh',
         xhrFields: { withCredentials: true }, // вот это очень важно!!
-        success: () => console.log("Токен успешно обновлен"),
-        error: () => window.location.href = "/"
+        success: function (res) {
+            if (res.success === true) {
+                console.log("Токен успешно обновлен");
+            } else {
+                console.warn("Ошибка при обновлении токена:", res);
+                window.location.href = "/";
+            }
+        }
     });
 };
 
-setInterval(refreshAccessToken, 10 * 60 * 1000);
+
+$(document).ready(function () {
+    setTimeout(refreshAccessToken, 1000); // через 1 секунду
+    setInterval(refreshAccessToken, 10 * 60 * 1000);
+});
+
