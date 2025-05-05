@@ -200,21 +200,23 @@ $(document).ready(function () {
 
 
 // этот код нужен, чтобы обновлять access_token "в фоне"
-const refreshAccessToken = () => {
-    $.ajax({
-        type: 'POST',
-        url: '/refresh',
-        xhrFields: { withCredentials: true }, // вот это очень важно!!
-        success: function (res) {
-            if (res.success === true) {
-                console.log("Токен успешно обновлен");
-            } else {
-                console.warn("Ошибка при обновлении токена:", res);
-                window.location.href = "/";
+if (typeof window.refreshAccessToken === 'undefined') {
+    window.refreshAccessToken = function () {
+        $.ajax({
+            type: 'POST',
+            url: '/refresh',
+            xhrFields: { withCredentials: true },
+            success: function (res) {
+                if (res.success === true) {
+                    console.log("Токен успешно обновлен");
+                } else {
+                    console.warn("Ошибка при обновлении токена:", res);
+                    window.location.href = "/";
+                }
             }
-        }
-    });
-};
+        });
+    };
+}
 
 
 $(document).ready(function () {

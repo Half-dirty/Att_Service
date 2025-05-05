@@ -4,13 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1440">
     <link rel="stylesheet" href="../../style/style.css">
     <link rel="stylesheet" href="../../style/student/global.css">
     <link rel="stylesheet" href="../../style/student/applications.css">
     <title>Назначенные экзамены</title>
 </head>
 
-<body>
+<body data-id="{{.id}}" data-name="{{.name}}">
     <div class="wrapper">
         <header class="header">
             <div class="header__container">
@@ -96,7 +97,7 @@
                             <div class="profile__application-info">
                                 {{if eq $.role "examiner"}}
                                 <a href="/user/exam/{{.ID}}" class="profile__application-link">Посмотреть экзамен</a>
-                                <button class="start-exam-btn" data-exam-id="{{.ID}}">Перейти к экзамену</button>
+                                <button class="profile__application-button" data-exam-id="{{.ID}}">Перейти к экзамену</button>
                                 {{end}}
                                 {{if eq $.role "student"}}
                                 <a href="/user/exam/{{.ID}}" class="profile__application-link">Посмотреть экзамен</a>
@@ -122,8 +123,9 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.5/jquery.inputmask.min.js"></script>
-    <script src="../../scripts/student_script.js"></script>
     <script src="../../scripts/socket.js"></script>
+<script src="../../scripts/student_script.js"></script>
+
 </body>
 
 </html>

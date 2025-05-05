@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Управление экзаменом</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1440">
     <link rel="stylesheet" href="../../../style/style.css">
     <link rel="stylesheet" href="../../../style/admin/exam_procedure.css">
     <link rel="stylesheet" href="../../../style/admin/global.css">
@@ -17,6 +19,9 @@
                     <h2>Экзамен: Управление студентами</h2>
                 </div>
                 <div class="exam__body">
+                    <div class="exam__information-text">
+                        <h2>Выберите человека, чтобы начать процедуру его оценивания</h2>
+                    </div>
                     <div class="exam__list">
                         {{range .List}}
                         <!-- exam_managment-start.html -->

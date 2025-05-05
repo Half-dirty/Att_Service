@@ -12,16 +12,15 @@
 }
 
 /* Для страницы управления экзаменом */
-.main.main--exam {
+.main--exam {
   flex-direction: column;
   height: 100vh; /* Использовать всю высоту */
   margin-top: 0;
 }
 
 /* Для страницы админки */
-.main.main--admin {
+.main--admin {
   flex-direction: row;
-  height: fit-content; /* Автоматическая высота */
   margin-top: 140px; /* Отступ для шапки */
 }
 
@@ -573,19 +572,20 @@
 }
 
 .profile__decline-button {
-  background-color: #ff4d4d;
+  background-color: #ce3939;
   color: #fff;
   border: none;
   padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 20px;
   transition: background-color 0.2s ease;
-  margin-left: 10px;
+  /* margin-left: 10px; */
 }
 
 .profile__decline-button:hover {
-  background-color: #cc0000;
+  background-color: #bb3333;
+  box-shadow: 0px 0px 4px 4px rgba(0, 0, 0, 0.3);
 }
 .profile__agree {
   display: flex;

@@ -82,7 +82,7 @@
   color: #333;
 }
 .profile__application-info {
-  max-width: 40%;
+  max-width: 60%;
   width: 100%;
   display: -webkit-box;
   display: -ms-flexbox;
@@ -93,11 +93,10 @@
           flex-direction: row;
   -webkit-box-pack: justify;
       -ms-flex-pack: justify;
-          justify-content: space-between;
+          justify-content: space-around;
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
-  padding: 10px;
   gap: 10px;
 }
 .profile__application-link {
@@ -148,6 +147,14 @@
 .profile__application-button:hover {
   -webkit-box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
           box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
+}
+.profile__application-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 10px;
 }
 .profile__application--aproved {
   padding: 7px;
@@ -399,16 +406,10 @@
   -webkit-box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
           box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
 }
-.profile__agree {
-  -ms-flex-item-align: end;
-      align-self: flex-end;
-  margin: 10px 30px 0 0;
-}
 .profile__agree-button {
   width: 100%;
-  border: 2px solid #23a03c;
   border-radius: 5px;
-  padding: 7px 12px;
+  padding: 12px 20px;
   font-size: 20px;
   background-color: #23a03c;
   color: white;
@@ -417,8 +418,8 @@
   transition: 0.3s;
 }
 .profile__agree-button:hover {
-  -webkit-box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
-          box-shadow: 0px 0px 4px 4px rgba(15, 36, 77, 0.6);
+  background-color: #1c8231;
+  box-shadow: 0px 0px 4px 4px rgba(0, 0, 0, 0.3);
 }
 .profile__confirm {
   font-size: 16px;

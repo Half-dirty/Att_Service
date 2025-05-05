@@ -212,44 +212,43 @@ function displayGradeSheet(gradeSheet) {
         tbody.appendChild(row);
     });
 }
+document.addEventListener("DOMContentLoaded", () => {
+    const subscribeButton = document.getElementById('subscribe_button');
+    if (!subscribeButton) return; // Элемент не найден — выходим
 
-document.getElementById('subscribe_button').addEventListener('click', function () {
-    const isAbstained = document.getElementById('exam__abstain').checked;
-    const scores = [];
-    const recommendations = document.getElementById('recomendation').value;
-    const qualification = document.getElementById('qualification').value;
-    const specialization = document.getElementById('specialization').value;
-    const studentId = parseInt(document.body.dataset.studentId, 10); // 🔥 исправлено
-    const examId = parseInt(document.body.dataset.examId, 10);        // 🔥 исправлено
+    subscribeButton.addEventListener('click', function () {
+        const isAbstained = document.getElementById('exam__abstain')?.checked;
+        const scores = [];
+        const recommendations = document.getElementById('recomendation')?.value || "";
+        const qualification = document.getElementById('qualification')?.value || "";
+        const specialization = document.getElementById('specialization')?.value || "";
+        const studentId = parseInt(document.body.dataset.studentId, 10);
+        const examId = parseInt(document.body.dataset.examId, 10);
 
-    if (!isAbstained) {
-        const rows = document.querySelectorAll(".exam__question-row");
-        rows.forEach((row, index) => {
-            const selected = row.querySelector("input[type='radio']:checked");
-            if (selected) {
-                scores.push(parseInt(selected.value));
-            } else {
-                scores.push(null);
-            }
-        });
-    }
+        if (!isAbstained) {
+            const rows = document.querySelectorAll(".exam__question-row");
+            rows.forEach((row) => {
+                const selected = row.querySelector("input[type='radio']:checked");
+                scores.push(selected ? parseInt(selected.value) : null);
+            });
+        }
 
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: "save_grade",
-            data: {
-                exam_id: examId,
-                student_id: studentId,
-                scores: isAbstained ? [] : scores,
-                qualification: qualification,
-                specialization: specialization,
-                recommendations: recommendations,
-                abstained: isAbstained
-            }
-        }));
-    }
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: "save_grade",
+                data: {
+                    exam_id: examId,
+                    student_id: studentId,
+                    scores: isAbstained ? [] : scores,
+                    qualification,
+                    specialization,
+                    recommendations,
+                    abstained: isAbstained
+                }
+            }));
+        }
+    });
 });
-
 
 function updateChairmanStatus(status) {
     const chairmanStatusText = document.getElementById('chairman_status_text');
@@ -332,21 +331,24 @@ function redirect(data) {
     }
 }
 
-const refreshAccessToken = () => {
-    $.ajax({
-        type: 'POST',
-        url: '/refresh',
-        xhrFields: { withCredentials: true }, // вот это очень важно!!
-        success: function (res) {
-            if (res.success === true) {
-                console.log("Токен успешно обновлен");
-            } else {
-                console.warn("Ошибка при обновлении токена:", res);
-                window.location.href = "/";
+if (typeof window.refreshAccessToken === 'undefined') {
+    window.refreshAccessToken = function () {
+        $.ajax({
+            type: 'POST',
+            url: '/refresh',
+            xhrFields: { withCredentials: true },
+            success: function (res) {
+                if (res.success === true) {
+                    console.log("Токен успешно обновлен");
+                } else {
+                    console.warn("Ошибка при обновлении токена:", res);
+                    window.location.href = "/";
+                }
             }
-        }
-    });
-};
+        });
+    };
+}
+
 
 
 $(document).ready(function () {

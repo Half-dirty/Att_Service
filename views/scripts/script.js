@@ -135,22 +135,23 @@ $('#registration-button').on('click', function (e) {
 })
 
 
-const refreshAccessToken = () => {
-    $.ajax({
-        type: 'POST',
-        url: '/refresh',
-        xhrFields: { withCredentials: true }, // вот это очень важно!!
-        success: function (res) {
-            if (res.success === true) {
-                console.log("Токен успешно обновлен");
-            } else {
-                console.warn("Ошибка при обновлении токена:", res);
-                window.location.href = "/";
+if (typeof window.refreshAccessToken === 'undefined') {
+    window.refreshAccessToken = function () {
+        $.ajax({
+            type: 'POST',
+            url: '/refresh',
+            xhrFields: { withCredentials: true },
+            success: function (res) {
+                if (res.success === true) {
+                    console.log("Токен успешно обновлен");
+                } else {
+                    console.warn("Ошибка при обновлении токена:", res);
+                    window.location.href = "/";
+                }
             }
-        }
-    });
-};
-
+        });
+    };
+}
 
 $(document).ready(function () {
     setTimeout(refreshAccessToken, 1000); // через 1 секунду

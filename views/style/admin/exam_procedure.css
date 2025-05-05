@@ -871,6 +871,16 @@
   background: linear-gradient(90deg, #f44336, #e57373); /* Красный цвет для низкого прогресса */
 }
 
+.exam__information-text{
+  margin: 10px;
+
+  h2 {
+    font-size: 16px;
+    font-weight: bold;
+    color: #ce3939;
+  }
+}
+
 .exam__radio-label {
   background: #f0f0f0;
   cursor: pointer;

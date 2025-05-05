@@ -1351,6 +1351,8 @@ func GetUserExams(c *fiber.Ctx) error {
 		"status": user.Status,
 		"avatar": avatar,
 		"path":   c.Path(),
+		"id":     user.ID,                                               // 👈 добавить
+		"name":   fmt.Sprintf("%s %s", user.SurnameInIp, user.NameInIp), // 👈 добавить
 	})
 }
 
